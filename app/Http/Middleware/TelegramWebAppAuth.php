@@ -13,7 +13,7 @@ class TelegramWebAppAuth
     {
         $initData = $request->header('X-Telegram-Init-Data');
 
-        if (!$initData || !config('app.telegram_bot_token')) {
+        if (!$initData || !env('TELEGRAM_BOT_TOKEN')) {
             return response()->json(['message' => 'Telegram authentication required.'], 401);
         }
 

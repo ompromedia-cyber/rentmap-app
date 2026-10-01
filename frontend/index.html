@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>RentMap</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">RentMap</div>
+    <button id="locateBtn">📍 Найти рядом</button>
+  </header>
+
+  <section class="filters">
+    <button class="filter active" data-category="all">Все</button>
+    <button class="filter" data-category="housing">🏠 Жильё</button>
+    <button class="filter" data-category="scooter">🛵 Скутеры</button>
+    <button class="filter" data-category="motorcycle">🏍️ Мото</button>
+    <button class="filter" data-category="car">🚗 Авто</button>
+  </section>
+
+  <main id="map"></main>
+
+  <aside id="sheet" class="sheet hidden">
+    <button id="closeSheet" class="close">×</button>
+    <div id="sheetContent"></div>
+  </aside>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -10,7 +10,7 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->whereNumber('listing');
 
-Route::post('/telegram/auth', [TelegramAuthController::class, 'auth']);
+Route::post('/telegram/auth', [TelegramAuthController::class, 'auth'])->middleware('telegram.auth');
 
 Route::middleware('telegram.auth')->group(function () {
     Route::post('/listings', [ListingController::class, 'store']);

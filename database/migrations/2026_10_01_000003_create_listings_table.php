@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->enum('price_period', ['hour', 'day', 'week', 'month']);
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
-            $table->point('location', 4326)->nullable();
+            $table->point('location', 4326);
             $table->enum('status', ['draft', 'active', 'rented', 'archived'])->default('active');
             $table->timestamps();
             $table->index(['category_id', 'status']);

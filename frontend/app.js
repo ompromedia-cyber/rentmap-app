@@ -68,6 +68,10 @@ function showListing(x) {
   `;
 
   document.getElementById('favoriteArea').innerHTML=`<button class="favorite-btn" data-favorite="0" onclick="toggleFavorite(${x.id},this)">♡ В избранное</button>`;
+  const owner = x.user || x.owner;
+  const ownerName = owner ? [owner.first_name, owner.last_name].filter(Boolean).join(' ') || (owner.username ? '@'+owner.username : 'Владелец') : '';
+  const ownerPhoto = owner?.photo_url ? `<img class="owner-avatar" src="${escapeHtml(owner.photo_url)}" alt="">` : '<div class="owner-avatar"></div>';
+  document.getElementById('ownerArea').innerHTML = owner ? `<div class="owner-card">${ownerPhoto}<div><div class="owner-name">${escapeHtml(ownerName)}</div>${owner.username ? `<div class="owner-username">@${escapeHtml(owner.username)}</div>` : ''}</div>${owner.username ? `<button class="contact-owner" onclick="window.open('https://t.me/${encodeURIComponent(owner.username)}','_blank')">Написать</button>` : ''}</div>` : '';
   document.getElementById('sheet').classList.remove('hidden');
 }
 

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>RentMap</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">RentMap</div>
+    <div class="top-actions">
+      <button id="addListingBtn">＋ Объявление</button>
+      <button id="locateBtn">📍 Рядом</button><button id="favoritesBtn">❤️</button>
+    </div>
+  </header>
+
+  <section class="filters">
+    <button class="filter active" data-category="all">Все</button>
+    <button class="filter" data-category="housing">🏠 Жильё</button>
+    <button class="filter" data-category="scooter">🛵 Скутеры</button>
+    <button class="filter" data-category="motorcycle">🏍️ Мото</button>
+    <button class="filter" data-category="car">🚗 Авто</button>
+  </section>
+
+  <main id="map"></main>
+
+  <aside id="sheet" class="sheet hidden">
+    <button id="closeSheet" class="close">×</button>
+    <div id="sheetContent"></div>
+    <div id="favoriteArea"></div><div id="ownerArea"></div>
+  </aside>
+
+  <aside id="favoritesSheet" class="sheet hidden"><button id="closeFavorites" class="close">×</button><h2>Избранное</h2><div id="favoritesContent"></div></aside>
+
+  <aside id="createSheet" class="sheet form-sheet hidden">
+    <button id="closeCreate" class="close">×</button>
+    <h2>Новое объявление</h2>
+    <form id="listingForm">
+      <label>Категория
+        <select id="listingCategory" required>
+          <option value="1">🏠 Жильё</option>
+          <option value="2">🛵 Скутеры</option>
+          <option value="3">🏍️ Мотоциклы</option>
+          <option value="4">🚗 Авто</option>
+        </select>
+      </label>
+      <label>Название
+        <input id="listingTitle" required maxlength="255" placeholder="Например, квартира у моря">
+      </label>
+      <label>Цена
+        <input id="listingPrice" required type="number" min="0" step="0.01" placeholder="8000000">
+      </label>
+      <label>Период
+        <select id="listingPeriod" required>
+          <option value="hour">Час</option>
+          <option value="day" selected>День</option>
+          <option value="week">Неделя</option>
+          <option value="month">Месяц</option>
+        </select>
+      </label>
+      <label>Описание
+        <textarea id="listingDescription" rows="3" placeholder="Описание, условия аренды..."></textarea>
+      </label>
+      <label>Фотографии
+        <input id="listingPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+      </label>
+      <div id="photoPreview" class="photo-preview"></div>
+      <div class="location-help">Нажмите на карте, чтобы выбрать место объявления.</div>
+      <div id="selectedLocation">Точка не выбрана</div>
+      <button class="primary" type="submit">Опубликовать</button>
+      <div id="formMessage" class="form-message"></div>
+    </form>
+  </aside>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

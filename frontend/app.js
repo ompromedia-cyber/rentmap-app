@@ -47,6 +47,8 @@ function render(list) {
     });
 }
 
+async function toggleFavorite(id, button) { const initData=tg?.initData; if(!initData){button.textContent='❤️ Только в Telegram';return;} const active=button.dataset.favorite==='1'; const res=await fetch(`${API_BASE}/favorites/${id}`,{method:active?'DELETE':'POST',headers:{'X-Telegram-Init-Data':initData}}); if(!res.ok)return; button.dataset.favorite=active?'0':'1'; button.textContent=active?'♡ В избранное':'♥ В избранном'; }
+
 function showListing(x) {
   const period = x.price_period ?? x.period;
   const categoryName = x.category?.name ?? x.category ?? '—';
@@ -65,6 +67,7 @@ function showListing(x) {
     ${x.description ? `<div class="listing-meta listing-description">${escapeHtml(x.description)}</div>` : ''}
   `;
 
+  document.getElementById('favoriteArea').innerHTML=`<button class="favorite-btn" data-favorite="0" onclick="toggleFavorite(${x.id},this)">♡ В избранное</button>`;
   document.getElementById('sheet').classList.remove('hidden');
 }
 

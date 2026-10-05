@@ -139,3 +139,104 @@ async function init() {
 }
 
 init();
+
+let createMode = false;
+let selectedLat = null;
+let selectedLng = null;
+let selectedMarker = null;
+
+function setCreateLocation(lat, lng) {
+  selectedLat = lat;
+  selectedLng = lng;
+  document.getElementById('selectedLocation').textContent =
+    `📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+  if (selectedMarker) selectedMarker.remove();
+  selectedMarker = L.marker([lat, lng]).addTo(map);
+}
+
+document.getElementById('addListingBtn').onclick = () => {
+  createMode = true;
+  document.getElementById('sheet').classList.add('hidden');
+  document.getElementById('createSheet').classList.remove('hidden');
+  document.getElementById('formMessage').textContent =
+    'Укажите точку объявления, нажав на карте.';
+};
+
+document.getElementById('closeCreate').onclick = () => {
+  createMode = false;
+  document.getElementById('createSheet').classList.add('hidden');
+  if (selectedMarker) {
+    selectedMarker.remove();
+    selectedMarker = null;
+  }
+};
+
+map.on('click', event => {
+  if (!createMode) return;
+  setCreateLocation(event.latlng.lat, event.latlng.lng);
+});
+
+document.getElementById('listingForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  if (!selectedLat || !selectedLng) {
+    document.getElementById('formMessage').textContent = 'Сначала выберите место на карте.';
+    return;
+  }
+
+  const initData = tg?.initData;
+  if (!initData) {
+    document.getElementById('formMessage').textContent =
+      'Создание объявлений доступно внутри Telegram Mini App.';
+    return;
+  }
+
+  const payload = {
+    category_id: Number(document.getElementById('listingCategory').value),
+    title: document.getElementById('listingTitle').value.trim(),
+    description: document.getElementById('listingDescription').value.trim() || null,
+    price: Number(document.getElementById('listingPrice').value),
+    currency: 'VND',
+    price_period: document.getElementById('listingPeriod').value,
+    latitude: selectedLat,
+    longitude: selectedLng,
+    status: 'active'
+  };
+
+  const message = document.getElementById('formMessage');
+  message.textContent = 'Публикуем...';
+
+  try {
+    const response = await fetch(`${API_BASE}/listings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Telegram-Init-Data': initData
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Не удалось создать объявление');
+    }
+
+    message.textContent = 'Объявление опубликовано!';
+    createMode = false;
+    document.getElementById('listingForm').reset();
+
+    setTimeout(async () => {
+      document.getElementById('createSheet').classList.add('hidden');
+      if (selectedMarker) {
+        selectedMarker.remove();
+        selectedMarker = null;
+      }
+      await loadListings();
+    }, 700);
+  } catch (error) {
+    console.error(error);
+    message.textContent = error.message;
+  }
+});

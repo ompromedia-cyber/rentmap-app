@@ -16,6 +16,8 @@ let listings = [];
 
 const fmtPrice = (n, c) => new Intl.NumberFormat('ru-RU').format(Number(n)) + ' ' + c;
 const periodLabel = p => ({hour: 'час', day: 'день', week: 'нед.', month: 'мес.'}[p] || p);
+const escapeHtml = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[ch]));
+const photoUrl = path => path ? `${window.RENTMAP_STORAGE_BASE || ''}/storage/${String(path).replace(/^\\//, '')}` : '';
 
 function normalizeListing(x) {
   return {
@@ -35,7 +37,7 @@ function render(list) {
     .forEach(x => {
       const icon = L.divIcon({
         className: '',
-        html: `<div class="price-marker">${fmtPrice(x.price, x.currency)}<small>${periodLabel(x.price_period ?? x.period)} · ${x.title}</small></div>`,
+        html: `<div class="price-marker">${fmtPrice(x.price, x.currency)}<small>${periodLabel(x.price_period ?? x.period)} · ${escapeHtml(x.title)}</small></div>`,
         iconAnchor: [55, 18]
       });
 
@@ -49,11 +51,18 @@ function showListing(x) {
   const period = x.price_period ?? x.period;
   const categoryName = x.category?.name ?? x.category ?? '—';
 
+  const photos = Array.isArray(x.photos) ? x.photos : [];
+  const gallery = photos.length ? `<div class="listing-gallery">${photos.map(p => {
+    const url = photoUrl(p.path);
+    return url ? `<img src="${url}" alt="" loading="lazy">` : '';
+  }).join('')}</div>` : '';
+
   document.getElementById('sheetContent').innerHTML = `
-    <div class="listing-title">${x.title}</div>
+    ${gallery}
+    <div class="listing-title">${escapeHtml(x.title)}</div>
     <div class="listing-price">${fmtPrice(x.price, x.currency)} / ${periodLabel(period)}</div>
-    <div class="listing-meta">Категория: ${categoryName}</div>
-    ${x.description ? `<div class="listing-meta">${x.description}</div>` : ''}
+    <div class="listing-meta">Категория: ${escapeHtml(categoryName)}</div>
+    ${x.description ? `<div class="listing-meta listing-description">${escapeHtml(x.description)}</div>` : ''}
   `;
 
   document.getElementById('sheet').classList.remove('hidden');
@@ -205,6 +214,12 @@ document.getElementById('listingForm').addEventListener('submit', async event =>
   };
 
   const message = document.getElementById('formMessage');
+  const photoInput = document.getElementById('listingPhotos');
+  const selectedPhotos = Array.from(photoInput.files || []);
+  if (selectedPhotos.length > 10) {
+    message.textContent = 'Можно выбрать максимум 10 фотографий.';
+    return;
+  }
   message.textContent = 'Публикуем...';
 
   try {
@@ -221,6 +236,18 @@ document.getElementById('listingForm').addEventListener('submit', async event =>
 
     if (!response.ok) {
       throw new Error(data.message || 'Не удалось создать объявление');
+    }
+
+    if (selectedPhotos.length) {
+      const formData = new FormData();
+      selectedPhotos.forEach(file => formData.append('photos[]', file));
+      const photoResponse = await fetch(`${API_BASE}/listings/${data.id}/photos`, {
+        method: 'POST',
+        headers: {'X-Telegram-Init-Data': initData},
+        body: formData
+      });
+      const photoData = await photoResponse.json();
+      if (!photoResponse.ok) throw new Error(photoData.message || 'Объявление создано, но фотографии не загрузились');
     }
 
     message.textContent = 'Объявление опубликовано!';

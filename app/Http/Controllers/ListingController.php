@@ -62,7 +62,7 @@ class ListingController extends Controller
             abort(404);
         }
 
-        return $listing->load(['category:id,slug,name,icon', 'photos:id,listing_id,path']);
+        return $listing->load(['category:id,slug,name,icon', 'photos:id,listing_id,path', 'user:id,telegram_id,username,first_name,last_name,photo_url']);
     }
 
     public function store(Request $request)

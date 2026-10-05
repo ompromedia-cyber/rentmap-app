@@ -71,6 +71,19 @@ function showListing(x) {
   document.getElementById('sheet').classList.remove('hidden');
 }
 
+async function loadFavorites() {
+  const initData=tg?.initData;
+  const box=document.getElementById('favoritesContent');
+  if(!initData){box.innerHTML='<div class="listing-meta">Избранное доступно внутри Telegram.</div>';return;}
+  box.innerHTML='<div class="listing-meta">Загрузка...</div>';
+  const res=await fetch(API_BASE+'/favorites',{headers:{'X-Telegram-Init-Data':initData}});
+  if(!res.ok){box.innerHTML='<div class="listing-meta">Не удалось загрузить избранное.</div>';return;}
+  const data=await res.json();
+  if(!data.length){box.innerHTML='<div class="listing-meta">Пока ничего не сохранено.</div>';return;}
+  box.innerHTML=data.map(x=>'<button class="favorite-item" data-id="'+x.id+'"><b>'+escapeHtml(x.title)+'</b><span>'+fmtPrice(x.price,x.currency)+' / '+periodLabel(x.price_period)+'</span></button>').join('');
+  box.querySelectorAll('.favorite-item').forEach(btn=>btn.onclick=()=>{const x=data.find(v=>Number(v.id)===Number(btn.dataset.id)); if(x){document.getElementById('favoritesSheet').classList.add('hidden');showListing(normalizeListing(x));}});
+}
+
 async function loadListings() {
   const params = new URLSearchParams({limit: '100'});
 
@@ -270,3 +283,7 @@ document.getElementById('listingForm').addEventListener('submit', async event =>
     message.textContent = error.message;
   }
 });
+
+
+document.getElementById('favoritesBtn').onclick=async()=>{document.getElementById('sheet').classList.add('hidden');document.getElementById('favoritesSheet').classList.remove('hidden');await loadFavorites();};
+document.getElementById('closeFavorites').onclick=()=>document.getElementById('favoritesSheet').classList.add('hidden');

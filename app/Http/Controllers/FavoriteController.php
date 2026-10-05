@@ -8,6 +8,16 @@ use Illuminate\\Http\\Request;
 
 class FavoriteController extends Controller
 {
+    public function index(Request $request)
+    {
+        return Favorite::with(['listing.category', 'listing.photos'])
+            ->where('user_id', $request->user()->id)
+            ->latest('created_at')
+            ->get()
+            ->pluck('listing')
+            ->values();
+    }
+
     public function store(Request $request, Listing $listing)
     {
         Favorite::firstOrCreate([

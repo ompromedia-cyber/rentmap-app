@@ -9,5 +9,6 @@ return [
     'locale' => 'ru',
     'fallback_locale' => 'ru',
     'key' => env('APP_KEY'),
+    'telegram_bot_token' => env('TELEGRAM_BOT_TOKEN'),
     'cipher' => 'AES-256-CBC',
 ];

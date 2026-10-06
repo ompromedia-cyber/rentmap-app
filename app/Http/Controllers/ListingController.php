@@ -17,6 +17,7 @@ class ListingController extends Controller
             'radius' => ['nullable', 'numeric', 'min:0.1', 'max:100'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'category' => ['nullable', 'string', 'exists:categories,slug'],
+            'region' => ['nullable', 'string', 'in:nha_trang,da_nang,goa,sri_lanka'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -30,6 +31,18 @@ class ListingController extends Controller
 
         if (!empty($validated['category'])) {
             $query->whereHas('category', fn ($q) => $q->where('slug', $validated['category']));
+        }
+
+        $regionBounds = [
+            'nha_trang' => [11.90, 12.50, 108.80, 109.45],
+            'da_nang' => [15.90, 16.25, 107.95, 108.40],
+            'goa' => [14.80, 15.80, 73.60, 74.50],
+            'sri_lanka' => [5.80, 9.95, 79.50, 81.95],
+        ];
+        if (!empty($validated['region'])) {
+            [$minLat, $maxLat, $minLng, $maxLng] = $regionBounds[$validated['region']];
+            $query->whereBetween('latitude', [$minLat, $maxLat])
+                ->whereBetween('longitude', [$minLng, $maxLng]);
         }
 
         $limit = (int) ($validated['limit'] ?? 100);

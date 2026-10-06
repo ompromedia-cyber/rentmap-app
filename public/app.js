@@ -3,6 +3,9 @@ tg?.ready();
 tg?.expand();
 
 const API_BASE = window.RENTMAP_API_BASE || '/api';
+const inTelegram = Boolean(tg?.initData);
+
+document.documentElement.classList.toggle('outside-telegram', !inTelegram);
 
 const map = L.map('map').setView([12.245, 109.194], 14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -47,7 +50,7 @@ function render(list) {
     });
 }
 
-async function toggleFavorite(id, button) { const initData=tg?.initData; if(!initData){button.textContent='❤️ Только в Telegram';return;} const active=button.dataset.favorite==='1'; const res=await fetch(`${API_BASE}/favorites/${id}`,{method:active?'DELETE':'POST',headers:{'X-Telegram-Init-Data':initData}}); if(!res.ok)return; button.dataset.favorite=active?'0':'1'; button.textContent=active?'♡ В избранное':'♥ В избранном'; }
+async function toggleFavorite(id, button) { const initData=tg?.initData; if(!initData)return; const active=button.dataset.favorite==='1'; const res=await fetch(`${API_BASE}/favorites/${id}`,{method:active?'DELETE':'POST',headers:{'X-Telegram-Init-Data':initData}}); if(!res.ok)return; button.dataset.favorite=active?'0':'1'; button.textContent=active?'♡ В избранное':'♥ В избранном'; }
 
 function showListing(x) {
   const period = x.price_period ?? x.period;
@@ -185,6 +188,7 @@ function setCreateLocation(lat, lng) {
 }
 
 document.getElementById('addListingBtn').onclick = () => {
+  if (!inTelegram) return;
   createMode = true;
   document.getElementById('sheet').classList.add('hidden');
   document.getElementById('createSheet').classList.remove('hidden');
@@ -215,11 +219,7 @@ document.getElementById('listingForm').addEventListener('submit', async event =>
   }
 
   const initData = tg?.initData;
-  if (!initData) {
-    document.getElementById('formMessage').textContent =
-      'Создание объявлений доступно внутри Telegram Mini App.';
-    return;
-  }
+  if (!initData) return;
 
   const payload = {
     category_id: Number(document.getElementById('listingCategory').value),

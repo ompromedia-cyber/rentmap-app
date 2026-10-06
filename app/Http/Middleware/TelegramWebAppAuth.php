@@ -28,7 +28,7 @@ class TelegramWebAppAuth
         ksort($data);
         $dataCheckString = collect($data)
             ->map(fn ($value, $key) => $key.'='.$value)
-            ->implode("\\n");
+            ->implode("\n");
 
         $secretKey = hash_hmac('sha256', config('app.telegram_bot_token'), 'WebAppData', true);
         $calculatedHash = hash_hmac('sha256', $dataCheckString, $secretKey);

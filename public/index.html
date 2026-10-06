@@ -11,17 +11,20 @@
   <header class="topbar">
     <div class="brand">RentMap</div>
     <div class="top-actions">
-      <button id="addListingBtn">＋ Объявление</button>
-      <button id="locateBtn">📍 Рядом</button><button id="favoritesBtn">❤️</button>
+      <select id="regionSelect" class="compact-select" aria-label="Region"></select>
+      <select id="languageSelect" class="compact-select" aria-label="Language"></select>
+      <button id="addListingBtn">＋ <span data-i18n="addListing">Объявление</span></button>
+      <button id="locateBtn">📍 <span data-i18n="nearby">Рядом</span></button>
+      <button id="favoritesBtn">❤️</button>
     </div>
   </header>
 
   <section class="filters">
-    <button class="filter active" data-category="all">Все</button>
-    <button class="filter" data-category="housing">🏠 Жильё</button>
-    <button class="filter" data-category="scooter">🛵 Скутеры</button>
-    <button class="filter" data-category="motorcycle">🏍️ Мото</button>
-    <button class="filter" data-category="car">🚗 Авто</button>
+    <button class="filter active" data-category="all" data-i18n="all">Все</button>
+    <button class="filter" data-category="housing" data-i18n="housing">🏠 Жильё</button>
+    <button class="filter" data-category="scooter" data-i18n="scooters">🛵 Скутеры</button>
+    <button class="filter" data-category="motorcycle" data-i18n="motorcycles">🏍️ Мото</button>
+    <button class="filter" data-category="car" data-i18n="cars">🚗 Авто</button>
   </section>
 
   <main id="map"></main>
@@ -32,44 +35,48 @@
     <div id="favoriteArea"></div><div id="ownerArea"></div>
   </aside>
 
-  <aside id="favoritesSheet" class="sheet hidden"><button id="closeFavorites" class="close">×</button><h2>Избранное</h2><div id="favoritesContent"></div></aside>
+  <aside id="favoritesSheet" class="sheet hidden">
+    <button id="closeFavorites" class="close">×</button>
+    <h2 data-i18n="favorites">Избранное</h2>
+    <div id="favoritesContent"></div>
+  </aside>
 
   <aside id="createSheet" class="sheet form-sheet hidden">
     <button id="closeCreate" class="close">×</button>
-    <h2>Новое объявление</h2>
+    <h2 data-i18n="newListing">Новое объявление</h2>
     <form id="listingForm">
-      <label>Категория
+      <label><span data-i18n="category">Категория</span>
         <select id="listingCategory" required>
-          <option value="1">🏠 Жильё</option>
-          <option value="2">🛵 Скутеры</option>
-          <option value="3">🏍️ Мотоциклы</option>
-          <option value="4">🚗 Авто</option>
+          <option value="1">🏠 <span>Жильё</span></option>
+          <option value="2">🛵 <span>Скутеры</span></option>
+          <option value="3">🏍️ <span>Мотоциклы</span></option>
+          <option value="4">🚗 <span>Авто</span></option>
         </select>
       </label>
-      <label>Название
-        <input id="listingTitle" required maxlength="255" placeholder="Например, квартира у моря">
+      <label><span data-i18n="title">Название</span>
+        <input id="listingTitle" required maxlength="255" data-i18n-placeholder="titlePlaceholder" placeholder="Например, квартира у моря">
       </label>
-      <label>Цена
-        <input id="listingPrice" required type="number" min="0" step="0.01" placeholder="8000000">
+      <label><span data-i18n="price">Цена</span>
+        <input id="listingPrice" required type="number" min="0" step="0.01" data-i18n-placeholder="pricePlaceholder" placeholder="8000000">
       </label>
-      <label>Период
+      <label><span data-i18n="period">Период</span>
         <select id="listingPeriod" required>
-          <option value="hour">Час</option>
-          <option value="day" selected>День</option>
-          <option value="week">Неделя</option>
-          <option value="month">Месяц</option>
+          <option value="hour" data-i18n="hour">Час</option>
+          <option value="day" selected data-i18n="day">День</option>
+          <option value="week" data-i18n="week">Неделя</option>
+          <option value="month" data-i18n="month">Месяц</option>
         </select>
       </label>
-      <label>Описание
-        <textarea id="listingDescription" rows="3" placeholder="Описание, условия аренды..."></textarea>
+      <label><span data-i18n="description">Описание</span>
+        <textarea id="listingDescription" rows="3" data-i18n-placeholder="descriptionPlaceholder" placeholder="Описание, условия аренды..."></textarea>
       </label>
-      <label>Фотографии
+      <label><span data-i18n="photos">Фотографии</span>
         <input id="listingPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
       </label>
       <div id="photoPreview" class="photo-preview"></div>
-      <div class="location-help">Нажмите на карте, чтобы выбрать место объявления.</div>
-      <div id="selectedLocation">Точка не выбрана</div>
-      <button class="primary" type="submit">Опубликовать</button>
+      <div class="location-help" data-i18n="locationHelp">Нажмите на карте, чтобы выбрать место объявления.</div>
+      <div id="selectedLocation" data-i18n="locationNotSelected">Точка не выбрана</div>
+      <button class="primary" type="submit" data-i18n="publish">Опубликовать</button>
       <div id="formMessage" class="form-message"></div>
     </form>
   </aside>

@@ -33,3 +33,12 @@ html.outside-telegram #favoritesBtn {
   .bottom-nav{max-width:560px;left:50%;right:auto;transform:translateX(-50%)}
   .filter-sheet{max-width:560px;left:50%;right:auto;transform:translateX(-50%)}
 }
+
+.listing-strip{position:absolute;z-index:1500;left:10px;right:10px;bottom:82px;height:142px;display:flex;gap:9px;overflow-x:auto;padding:4px 2px 8px;scroll-snap-type:x mandatory;pointer-events:auto}
+.listing-card{flex:0 0 250px;background:rgba(255,255,255,.98);border-radius:15px;padding:11px;box-shadow:0 3px 15px #0003;scroll-snap-align:start;cursor:pointer;overflow:hidden}
+.listing-card-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.listing-card-price{font-size:15px;font-weight:800;margin-top:5px}
+.listing-card-meta{font-size:12px;color:#666;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.listing-card-desc{font-size:12px;color:#555;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.listing-strip::-webkit-scrollbar{display:none}
+@media (min-width:700px){.listing-strip{max-width:900px;left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 20px)}}

@@ -183,7 +183,7 @@ const fmtMapPrice = (n, c) => {
 };
 const periodLabel = p => ({hour:t('periodHour'),day:t('periodDay'),week:t('periodWeek'),month:t('periodMonth')}[p] || p);
 const escapeHtml = value => String(value ?? '').replace(/[&<>\\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\\\"':'&quot;',"'":'&#039;'}[ch]));
-const photoUrl = path => path ? `${window.RENTMAP_STORAGE_BASE || ''}/storage/${String(path).replace(/^\\//, '')}` : '';
+const photoUrl = path => path ? `${window.RENTMAP_STORAGE_BASE || ""}/storage/${String(path).replace(/^\//, "")}` : "";
 
 function normalizeListing(x) {
   return {...x, lat:Number(x.latitude ?? x.lat), lon:Number(x.longitude ?? x.lon), category:x.category?.slug ?? x.category_slug ?? x.category};

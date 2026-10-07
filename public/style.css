@@ -9,3 +9,27 @@ html.outside-telegram #addListingBtn,
 html.outside-telegram #favoritesBtn {
   display: none;
 }
+
+/* Mobile-first navigation and map pins */
+.topbar{left:10px;right:10px;top:10px;padding:9px 11px}
+.brand{letter-spacing:-.4px}
+.top-actions{margin-left:auto}
+.filters{display:none}
+.filter-sheet{position:absolute;z-index:2100;left:10px;right:10px;bottom:78px;background:rgba(255,255,255,.98);border-radius:18px;padding:14px;box-shadow:0 5px 25px #0004}
+.filter-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:16px}
+.filter-options{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.filter-options .filter{border:0;border-radius:12px;padding:11px;background:#f3f3f3;font:inherit;text-align:center;box-shadow:none}
+.filter-options .filter.active{background:#111;color:#fff}
+.bottom-nav{position:absolute;z-index:1900;left:10px;right:10px;bottom:10px;height:62px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:5px;background:rgba(255,255,255,.97);border-radius:18px;box-shadow:0 4px 22px #0004}
+.bottom-nav button{border:0;background:transparent;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;font-size:11px;font-weight:600;color:#555}
+.bottom-nav button:first-letter{font-size:20px}
+.bottom-nav button span{font-size:10px;white-space:nowrap}
+.bottom-nav .bottom-add{background:#111;color:#fff}
+.map-pin{position:relative;width:54px;height:54px;border-radius:50% 50% 50% 0;background:#111;transform:rotate(-45deg);box-shadow:0 3px 10px #0005;display:flex;align-items:center;justify-content:center}
+.map-pin-content{transform:rotate(45deg);width:100%;text-align:center;color:#fff;font-weight:800;font-size:11px;line-height:1.05;padding:0 4px}
+.map-pin-content small{display:block;font-size:8px;font-weight:600;opacity:.85;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leaflet-marker-icon.map-pin-icon{overflow:visible}
+@media (min-width:700px){
+  .bottom-nav{max-width:560px;left:50%;right:auto;transform:translateX(-50%)}
+  .filter-sheet{max-width:560px;left:50%;right:auto;transform:translateX(-50%)}
+}

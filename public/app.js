@@ -188,6 +188,18 @@ const photoUrl = path => path ? `${window.RENTMAP_STORAGE_BASE || ''}/storage/${
 function normalizeListing(x) {
   return {...x, lat:Number(x.latitude ?? x.lat), lon:Number(x.longitude ?? x.lon), category:x.category?.slug ?? x.category_slug ?? x.category};
 }
+function renderListingStrip(list) {
+  const strip=document.getElementById('listingStrip');
+  if(!strip)return;
+  const visible=list.filter(x=>currentCategory==='all'||x.category===currentCategory);
+  strip.innerHTML=visible.map((x,i)=>`<article class="listing-card" data-listing-index="${i}">
+    <div class="listing-card-title">${escapeHtml(x.title)}</div>
+    <div class="listing-card-price">${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</div>
+    <div class="listing-card-meta">${escapeHtml(x.category_name||x.category||'')}</div>
+    <div class="listing-card-desc">${escapeHtml(x.description||'')}</div>
+  </article>`).join('');
+  strip.querySelectorAll('.listing-card').forEach((card,i)=>card.onclick=()=>{showListing(visible[i]);if(markers[i]){map.setView(markers[i].getLatLng(),Math.max(map.getZoom(),15));markers[i].openPopup();}});
+}
 function render(list) {
   markers.forEach(m => m.remove()); markers = [];
   list.filter(x => currentCategory === 'all' || x.category === currentCategory).forEach(x => {
@@ -201,6 +213,7 @@ function render(list) {
     const m=L.marker([x.lat,x.lon],{icon}).addTo(map);
     m.on('click',()=>showListing(x)); markers.push(m);
   });
+  renderListingStrip(list);
 }
 async function toggleFavorite(id,button) {
   const initData=tg?.initData; if(!initData)return;

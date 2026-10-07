@@ -192,12 +192,15 @@ function renderListingStrip(list) {
   const strip=document.getElementById('listingStrip');
   if(!strip)return;
   const visible=list.filter(x=>currentCategory==='all'||x.category===currentCategory);
-  strip.innerHTML=visible.map((x,i)=>`<article class="listing-card" data-listing-index="${i}">
+  strip.innerHTML=visible.map((x,i)=>{ const photo=Array.isArray(x.photos)&&x.photos[0]?photoUrl(x.photos[0].path):''; return `<article class="listing-card" data-listing-index="${i}">
+    ${photo?`<img class="listing-card-photo" src="${escapeHtml(photo)}" alt="" loading="lazy">`:''}
+    <div class="listing-card-body">
     <div class="listing-card-title">${escapeHtml(x.title)}</div>
     <div class="listing-card-price">${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</div>
     <div class="listing-card-meta">${escapeHtml(x.category_name||x.category||'')}</div>
     <div class="listing-card-desc">${escapeHtml(x.description||'')}</div>
-  </article>`).join('');
+    </div>
+  </article>`}).join('');
   strip.querySelectorAll('.listing-card').forEach((card,i)=>card.onclick=()=>{showListing(visible[i]);if(markers[i]){map.setView(markers[i].getLatLng(),Math.max(map.getZoom(),15));markers[i].openPopup();}});
 }
 function render(list) {

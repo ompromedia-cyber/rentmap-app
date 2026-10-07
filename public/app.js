@@ -267,13 +267,41 @@ async function loadNearby(lat,lng) {
 document.getElementById('closeSheet').onclick=()=>document.getElementById('sheet').classList.add('hidden');
 document.getElementById('filtersBtn').onclick=()=>document.getElementById('filterSheet').classList.toggle('hidden');
 document.getElementById('closeFilterSheet').onclick=()=>document.getElementById('filterSheet').classList.add('hidden');
-document.getElementById('languageBtn').onclick=()=>document.getElementById('languageSelect').click();
+document.getElementById('languageBtn').onclick=()=>document.getElementById('languageSheet').classList.remove('hidden');
 document.querySelectorAll('.filter').forEach(btn=>{btn.onclick=async()=>{document.querySelectorAll('.filter').forEach(b=>b.classList.remove('active'));document.querySelectorAll(`.filter[data-category="${btn.dataset.category}"]`).forEach(b=>b.classList.add('active'));currentCategory=btn.dataset.category;document.getElementById('filterSheet').classList.add('hidden');try{await loadListings();}catch(error){console.error(error);}};});
-document.getElementById('locateBtn').onclick=()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async pos=>{const{latitude,longitude}=pos.coords;map.setView([latitude,longitude],15);L.circleMarker([latitude,longitude],{radius:7}).addTo(map);try{await loadNearby(latitude,longitude);}catch(error){console.error(error);}});};
+document.getElementById('locateBtn').onclick=()=>{
+  const locate=async(lat,lng)=>{
+    map.setView([lat,lng],15);
+    L.circleMarker([lat,lng],{radius:7}).addTo(map);
+    try{await loadNearby(lat,lng);}catch(error){console.error(error);}
+  };
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>locate(pos.coords.latitude,pos.coords.longitude),
+      ()=>{ if(tg?.LocationManager){ try{tg.LocationManager.init(()=>tg.LocationManager.getLocation(pos=>{if(pos)locate(pos.latitude,pos.longitude);});}catch(e){console.error(e);} } }
+    );
+  }
+};
 
+document.getElementById('closeLanguage').onclick=()=>document.getElementById('languageSheet').classList.add('hidden');
+document.getElementById('languageOptions').onclick=event=>{
+  const btn=event.target.closest('[data-language]');
+  if(!btn)return;
+  lang=btn.dataset.language;
+  localStorage.setItem('rentmap_lang',lang);
+  applyTranslations();
+  render(listings);
+  document.getElementById('languageSheet').classList.add('hidden');
+};
+
+function renderLanguageOptions(){
+  const box=document.getElementById('languageOptions');
+  if(box)box.innerHTML=LANGUAGES.map(code=>`<button class="filter ${code===lang?'active':''}" data-language="${code}">${languageNames[code]}</button>`).join('');
+}
 async function init() {
   setupSelectors();
   applyTranslations();
+  renderLanguageOptions();
   try { await loadListings(); }
   catch(error){console.error(error);document.getElementById('sheetContent').innerHTML=`<div class="listing-meta">${t('apiError')}</div>`;}
 }

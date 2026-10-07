@@ -278,7 +278,7 @@ document.getElementById('locateBtn').onclick=()=>{
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       pos=>locate(pos.coords.latitude,pos.coords.longitude),
-      ()=>{ if(tg?.LocationManager){ try{tg.LocationManager.init(()=>tg.LocationManager.getLocation(pos=>{if(pos)locate(pos.latitude,pos.longitude);});}catch(e){console.error(e);} } }
+      ()=>{ if(tg?.LocationManager){ try{tg.LocationManager.init(()=>{tg.LocationManager.getLocation(pos=>{if(pos)locate(pos.latitude,pos.longitude);});});}catch(e){console.error(e);} } }
     );
   }
 };

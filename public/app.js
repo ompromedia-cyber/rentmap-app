@@ -171,6 +171,16 @@ let currentCategory = 'all';
 let listings = [];
 
 const fmtPrice = (n, c) => new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : lang === 'vi' ? 'vi-VN' : 'en-US').format(Number(n)) + ' ' + c;
+const fmtMapPrice = (n, c) => {
+  const value = Number(n);
+  if (!Number.isFinite(value)) return '';
+  const units = c === 'VND' ? [[1e9,'B'],[1e6,'M'],[1e3,'K']] : [[1e9,'B'],[1e6,'M'],[1e3,'K']];
+  for (const [unit, suffix] of units) if (value >= unit) {
+    const v = value / unit;
+    return (v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(1).replace(/\.0$/,'') : v.toFixed(1).replace(/\.0$/,'')) + suffix;
+  }
+  return String(Math.round(value));
+};
 const periodLabel = p => ({hour:t('periodHour'),day:t('periodDay'),week:t('periodWeek'),month:t('periodMonth')}[p] || p);
 const escapeHtml = value => String(value ?? '').replace(/[&<>\\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\\\"':'&quot;',"'":'&#039;'}[ch]));
 const photoUrl = path => path ? `${window.RENTMAP_STORAGE_BASE || ''}/storage/${String(path).replace(/^\\//, '')}` : '';
@@ -182,9 +192,11 @@ function render(list) {
   markers.forEach(m => m.remove()); markers = [];
   list.filter(x => currentCategory === 'all' || x.category === currentCategory).forEach(x => {
     const icon = L.divIcon({
-      className:'',
-      html:`<div class="price-marker">${fmtPrice(x.price,x.currency)}<small>${periodLabel(x.price_period ?? x.period)} · ${escapeHtml(x.title)}</small></div>`,
-      iconAnchor:[55,18]
+      className:'map-pin-icon',
+      html:`<div class="map-pin"><div class="map-pin-content">${fmtMapPrice(x.price,x.currency)}<small>${escapeHtml(x.title)}</small></div></div>`,
+      iconSize:[54,54],
+      iconAnchor:[10,54],
+      popupAnchor:[0,-54]
     });
     const m=L.marker([x.lat,x.lon],{icon}).addTo(map);
     m.on('click',()=>showListing(x)); markers.push(m);
@@ -237,7 +249,10 @@ async function loadNearby(lat,lng) {
 }
 
 document.getElementById('closeSheet').onclick=()=>document.getElementById('sheet').classList.add('hidden');
-document.querySelectorAll('.filter').forEach(btn=>{btn.onclick=async()=>{document.querySelectorAll('.filter').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentCategory=btn.dataset.category;try{await loadListings();}catch(error){console.error(error);}};});
+document.getElementById('filtersBtn').onclick=()=>document.getElementById('filterSheet').classList.toggle('hidden');
+document.getElementById('closeFilterSheet').onclick=()=>document.getElementById('filterSheet').classList.add('hidden');
+document.getElementById('languageBtn').onclick=()=>document.getElementById('languageSelect').click();
+document.querySelectorAll('.filter').forEach(btn=>{btn.onclick=async()=>{document.querySelectorAll('.filter').forEach(b=>b.classList.remove('active'));document.querySelectorAll(`.filter[data-category="${btn.dataset.category}"]`).forEach(b=>b.classList.add('active'));currentCategory=btn.dataset.category;document.getElementById('filterSheet').classList.add('hidden');try{await loadListings();}catch(error){console.error(error);}};});
 document.getElementById('locateBtn').onclick=()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async pos=>{const{latitude,longitude}=pos.coords;map.setView([latitude,longitude],15);L.circleMarker([latitude,longitude],{radius:7}).addTo(map);try{await loadNearby(latitude,longitude);}catch(error){console.error(error);}});};
 
 async function init() {

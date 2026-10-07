@@ -12,20 +12,27 @@
     <div class="brand">RentMap</div>
     <div class="top-actions">
       <select id="regionSelect" class="compact-select" aria-label="Region"></select>
-      <select id="languageSelect" class="compact-select" aria-label="Language"></select>
-      <button id="addListingBtn">＋ <span data-i18n="addListing">Объявление</span></button>
-      <button id="locateBtn">📍 <span data-i18n="nearby">Рядом</span></button>
-      <button id="favoritesBtn">❤️</button>
     </div>
   </header>
 
-  <section class="filters">
-    <button class="filter active" data-category="all" data-i18n="all">Все</button>
-    <button class="filter" data-category="housing" data-i18n="housing">🏠 Жильё</button>
-    <button class="filter" data-category="scooter" data-i18n="scooters">🛵 Скутеры</button>
-    <button class="filter" data-category="motorcycle" data-i18n="motorcycles">🏍️ Мото</button>
-    <button class="filter" data-category="car" data-i18n="cars">🚗 Авто</button>
+  <section id="filterSheet" class="filter-sheet hidden">
+    <div class="filter-sheet-head"><b data-i18n="filters">Фильтры</b><button id="closeFilterSheet" class="close">×</button></div>
+    <div class="filter-options">
+      <button class="filter active" data-category="all" data-i18n="all">Все</button>
+      <button class="filter" data-category="housing" data-i18n="housing">🏠 Жильё</button>
+      <button class="filter" data-category="scooter" data-i18n="scooters">🛵 Скутеры</button>
+      <button class="filter" data-category="motorcycle" data-i18n="motorcycles">🏍️ Мото</button>
+      <button class="filter" data-category="car" data-i18n="cars">🚗 Авто</button>
+    </div>
   </section>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button id="filtersBtn">☰<span data-i18n="filters">Фильтры</span></button>
+    <button id="locateBtn">⌖<span data-i18n="nearby">Рядом</span></button>
+    <button id="addListingBtn" class="bottom-add">＋<span data-i18n="addListing">Объявление</span></button>
+    <button id="favoritesBtn">♡<span data-i18n="favorites">Избранное</span></button>
+    <button id="languageBtn">文<span data-i18n="language">Язык</span></button>
+  </nav>
 
   <main id="map"></main>
 

@@ -10,6 +10,5 @@ return [
     'fallback_locale' => 'ru',
     'key' => env('APP_KEY'),
     'telegram_bot_token' => env('TELEGRAM_BOT_TOKEN'),
-    'google_translate_key' => env('GOOGLE_TRANSLATE_API_KEY'),
     'cipher' => 'AES-256-CBC',
 ];

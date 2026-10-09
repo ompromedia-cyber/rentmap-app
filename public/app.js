@@ -202,8 +202,8 @@ const listingDescription = x => x.translated_description ?? x.description ?? '';
 async function translateListingTexts(items) {
   const normalized = items.map(normalizeListing);
   const translated = [];
-  for (let offset = 0; offset < normalized.length; offset += 100) {
-    const chunk = normalized.slice(offset, offset + 100);
+  for (let offset = 0; offset < normalized.length; offset += 50) {
+    const chunk = normalized.slice(offset, offset + 50);
     const texts = [];
     const slots = [];
     chunk.forEach((item, itemIndex) => {

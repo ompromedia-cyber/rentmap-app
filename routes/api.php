@@ -1,11 +1,11 @@
 <?php
 
-use App\\Http\\Controllers\\CategoryController;
-use App\\Http\\Controllers\\FavoriteController;
-use App\\Http\\Controllers\\ListingController;
-use App\\Http\\Controllers\\ListingPhotoController;
-use App\\Http\\Controllers\\TelegramAuthController;
-use Illuminate\\Support\\Facades\\Route;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\ListingController;
+use App\Http\Controllers\ListingPhotoController;
+use App\Http\Controllers\TelegramAuthController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/listings', [ListingController::class, 'index']);
@@ -15,6 +15,7 @@ Route::post('/telegram/auth', [TelegramAuthController::class, 'auth'])->middlewa
 
 Route::middleware('telegram.auth')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::get('/my-listings', [ListingController::class, 'mine']);
     Route::post('/listings', [ListingController::class, 'store']);
     Route::post('/listings/{listing}/photos', [ListingPhotoController::class, 'store'])->whereNumber('listing');
     Route::delete('/listing-photos/{photo}', [ListingPhotoController::class, 'destroy'])->whereNumber('photo');

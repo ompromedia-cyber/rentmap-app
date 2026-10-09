@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/listings', [ListingController::class, 'index']);
-Route::post('/translate', [TranslationController::class, 'translate'])->middleware('throttle:30,1');
+Route::post('/translate', [TranslationController::class, 'translate'])->middleware('throttle:10,1');
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->whereNumber('listing');
 
 Route::post('/telegram/auth', [TelegramAuthController::class, 'auth'])->middleware('telegram.auth');

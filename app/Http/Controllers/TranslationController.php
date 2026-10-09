@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Cache;
-use Illuminate\\Support\\Facades\\Http;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class TranslationController extends Controller
 {
@@ -12,9 +12,15 @@ class TranslationController extends Controller
     {
         $validated = $request->validate([
             'target' => ['required', 'string', 'in:ru,en,vi,hi,si,ta,mr,gom'],
-            'texts' => ['required', 'array', 'max:200'],
-            'texts.*' => ['nullable', 'string', 'max:5000'],
+            'texts' => ['required', 'array', 'max:100'],
+            'texts.*' => ['nullable', 'string', 'max:3000'],
         ]);
+
+        $texts = array_values($validated['texts']);
+        $totalLength = array_sum(array_map(static fn ($text) => mb_strlen((string) $text), $texts));
+        if ($totalLength > 50000) {
+            return response()->json(['message' => 'Too much text in one request.'], 422);
+        }
 
         $apiKey = config('app.google_translate_key');
         if (!$apiKey) {
@@ -22,7 +28,6 @@ class TranslationController extends Controller
         }
 
         $target = $validated['target'];
-        $texts = array_values($validated['texts']);
         $result = $texts;
         $missing = [];
         $indexes = [];
@@ -50,7 +55,7 @@ class TranslationController extends Controller
                     'https://translation.googleapis.com/language/translate/v2?key=' . urlencode($apiKey),
                     ['q' => array_values($chunk), 'target' => $target, 'format' => 'text']
                 );
-            } catch (\\Throwable $e) {
+            } catch (\Throwable $e) {
                 report($e);
                 return response()->json(['message' => 'Translation provider is temporarily unavailable.'], 502);
             }

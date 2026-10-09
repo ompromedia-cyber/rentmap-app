@@ -1,11 +1,10 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Category;
-use App\\Models\\Listing;
-use Illuminate\\Http\\Request;
-use Illuminate\\Validation\\Rule;
+use App\Models\Listing;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ListingController extends Controller
 {
@@ -67,6 +66,17 @@ class ListingController extends Controller
         }
 
         return response()->json($query->limit($limit)->get());
+    }
+
+    public function mine(Request $request)
+    {
+        $listings = Listing::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['category:id,slug,name,icon', 'photos:id,listing_id,path'])
+            ->latest('id')
+            ->get();
+
+        return response()->json($listings);
     }
 
     public function show(Listing $listing)

@@ -113,6 +113,12 @@ const translations = {
   }
 };
 
+const EXTRA_TRANSLATIONS = {
+  myListings: {ru:'Мои объявления',en:'My listings',vi:'Tin của tôi',hi:'मेरे विज्ञापन',si:'මගේ දැන්වීම්',ta:'எனது விளம்பரங்கள்',kok:'म्हज्यो जाहिराती',mr:'माझ्या जाहिराती'},
+  myListingsEmpty: {ru:'У вас пока нет объявлений.',en:'You have no listings yet.',vi:'Bạn chưa có tin đăng nào.',hi:'अभी आपके कोई विज्ञापन नहीं हैं।',si:'ඔබට තවම දැන්වීම් නැත.',ta:'உங்களிடம் இன்னும் விளம்பரங்கள் இல்லை.',kok:'तुमच्यो अजून जाहिराती नात.',mr:'तुमच्या अद्याप जाहिराती नाहीत.'},
+  myListingsTelegram: {ru:'Откройте приложение внутри Telegram, чтобы увидеть свои объявления.',en:'Open the app inside Telegram to view your listings.',vi:'Mở ứng dụng trong Telegram để xem tin của bạn.',hi:'अपने विज्ञापन देखने के लिए ऐप Telegram में खोलें।',si:'ඔබේ දැන්වීම් බැලීමට Telegram තුළ යෙදුම විවෘත කරන්න.',ta:'உங்கள் விளம்பரங்களைப் பார்க்க Telegram-ல் பயன்பாட்டைத் திறக்கவும்.',kok:'तुमच्यो जाहिराती पळोवपाखातीर Telegram भितर अॅप उगडात.',mr:'तुमच्या जाहिराती पाहण्यासाठी अॅप Telegram मध्ये उघडा.'},
+  myListingsError: {ru:'Не удалось загрузить ваши объявления. Попробуйте ещё раз.',en:'Could not load your listings. Please try again.',vi:'Không thể tải tin của bạn. Vui lòng thử lại.',hi:'आपके विज्ञापन लोड नहीं हो सके। फिर कोशिश करें।',si:'ඔබේ දැන්වීම් පූරණය කළ නොහැකි විය. නැවත උත්සාහ කරන්න.',ta:'உங்கள் விளம்பரங்களை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',kok:'तुमच्यो जाहिराती लोड जाल्यो नात. परत यत्न करात.',mr:'तुमच्या जाहिराती लोड झाल्या नाहीत. पुन्हा प्रयत्न करा.'}
+};
 const languageNames = {ru:'Русский',en:'English',vi:'Tiếng Việt',hi:'हिन्दी',si:'සිංහල',ta:'தமிழ்',kok:'कोंकणी',mr:'मराठी'};
 const regionNames = {
   nha_trang:{ru:'Нячанг',en:'Nha Trang',vi:'Nha Trang',hi:'न्हा ट्रांग',si:'නා ට්‍රෑන්ග්',ta:'நா ட்ராங்',kok:'Nha Trang',mr:'न्हा ट्रांग'},
@@ -124,7 +130,7 @@ let lang = localStorage.getItem('rentmap_lang') || 'ru';
 let currentRegion = localStorage.getItem('rentmap_region') || 'nha_trang';
 
 function t(key) {
-  return translations[lang]?.[key] ?? translations.en[key] ?? key;
+  return translations[lang]?.[key] ?? EXTRA_TRANSLATIONS[key]?.[lang] ?? translations.en[key] ?? EXTRA_TRANSLATIONS[key]?.en ?? key;
 }
 function regionLabel(region) {
   return regionNames[region]?.[lang] ?? regionNames[region]?.en ?? region;
@@ -249,6 +255,36 @@ async function loadFavorites() {
   box.innerHTML=data.map(x=>'<button class="favorite-item" data-id="'+x.id+'"><b>'+escapeHtml(x.title)+'</b><span>'+fmtPrice(x.price,x.currency)+' / '+periodLabel(x.price_period)+'</span></button>').join('');
   box.querySelectorAll('.favorite-item').forEach(btn=>btn.onclick=()=>{const x=data.find(v=>Number(v.id)===Number(btn.dataset.id));if(x){document.getElementById('favoritesSheet').classList.add('hidden');showListing(normalizeListing(x));}});
 }
+async function loadMyListings() {
+  const box = document.getElementById('myListingsContent');
+  const initData = tg?.initData;
+  if (!initData) {
+    box.innerHTML = `<div class="listing-meta">${t('myListingsTelegram')}</div>`;
+    return;
+  }
+  box.innerHTML = `<div class="listing-meta">${t('loading')}</div>`;
+  try {
+    const response = await fetch(`${API_BASE}/my-listings`, {headers:{'X-Telegram-Init-Data':initData}});
+    if (!response.ok) throw new Error('Could not load my listings');
+    const payload = await response.json();
+    const items = (Array.isArray(payload) ? payload : (payload.data || [])).map(normalizeListing);
+    if (!items.length) {
+      box.innerHTML = `<div class="listing-meta">${t('myListingsEmpty')}</div>`;
+      return;
+    }
+    box.innerHTML = items.map(x => `<button class="favorite-item my-listing-item" data-id="${Number(x.id)}"><b>${escapeHtml(x.title)}</b><span>${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</span></button>`).join('');
+    box.querySelectorAll('.my-listing-item').forEach(btn => btn.onclick = () => {
+      const item = items.find(x => Number(x.id) === Number(btn.dataset.id));
+      if (item) {
+        document.getElementById('myListingsSheet').classList.add('hidden');
+        showListing(item);
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    box.innerHTML = `<div class="listing-meta">${t('myListingsError')}</div>`;
+  }
+}
 async function loadListings() {
   const params=new URLSearchParams({limit:'100',region:currentRegion});
   if(currentCategory!=='all')params.set('category',currentCategory);
@@ -338,3 +374,5 @@ document.getElementById('listingForm').addEventListener('submit',async event=>{
 });
 document.getElementById('favoritesBtn').onclick=async()=>{document.getElementById('sheet').classList.add('hidden');document.getElementById('favoritesSheet').classList.remove('hidden');await loadFavorites();};
 document.getElementById('closeFavorites').onclick=()=>document.getElementById('favoritesSheet').classList.add('hidden');
+document.getElementById('myListingsBtn').onclick=async()=>{document.getElementById('sheet').classList.add('hidden');document.getElementById('favoritesSheet').classList.add('hidden');document.getElementById('myListingsSheet').classList.remove('hidden');await loadMyListings();};
+document.getElementById('closeMyListings').onclick=()=>document.getElementById('myListingsSheet').classList.add('hidden');

@@ -159,7 +159,7 @@ function setupSelectors() {
     lang = languageSelect.value;
     localStorage.setItem('rentmap_lang', lang);
     applyTranslations();
-    render(listings);
+    await refreshListingTranslations();
   };
   regionSelect.onchange = async () => {
     currentRegion = regionSelect.value;
@@ -194,6 +194,55 @@ const photoUrl = path => path ? `${window.RENTMAP_STORAGE_BASE || ""}/storage/${
 function normalizeListing(x) {
   return {...x, lat:Number(x.latitude ?? x.lat), lon:Number(x.longitude ?? x.lon), category:x.category?.slug ?? x.category_slug ?? x.category};
 }
+
+let activeListingOriginal = null;
+const listingTitle = x => x.translated_title ?? x.title ?? '';
+const listingDescription = x => x.translated_description ?? x.description ?? '';
+
+async function translateListingTexts(items) {
+  const normalized = items.map(normalizeListing);
+  const translated = [];
+  for (let offset = 0; offset < normalized.length; offset += 100) {
+    const chunk = normalized.slice(offset, offset + 100);
+    const texts = [];
+    const slots = [];
+    chunk.forEach((item, itemIndex) => {
+      if (item.title) { slots.push({itemIndex, field:'translated_title', textIndex:texts.length}); texts.push(item.title); }
+      if (item.description) { slots.push({itemIndex, field:'translated_description', textIndex:texts.length}); texts.push(item.description); }
+    });
+    const chunkResult = chunk.map(item => ({...item, translated_title:item.title, translated_description:item.description}));
+    if (texts.length) {
+      try {
+        const response = await fetch(`${API_BASE}/translate`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({target:({kok:'gom'}[lang] || lang),texts})
+        });
+        if (response.ok) {
+          const payload = await response.json();
+          slots.forEach(slot => {
+            const value = payload.translations?.[slot.textIndex];
+            if (typeof value === 'string') chunkResult[slot.itemIndex][slot.field] = value;
+          });
+        }
+      } catch (error) {
+        console.warn('Listing translation unavailable; showing original text.', error);
+      }
+    }
+    translated.push(...chunkResult);
+  }
+  return translated;
+}
+
+async function refreshListingTranslations() {
+  listings = await translateListingTexts(listings);
+  render(listings);
+  if (activeListingOriginal) {
+    const active = (await translateListingTexts([activeListingOriginal]))[0];
+    showListing(active);
+  }
+}
+
 function renderListingStrip(list) {
   const strip=document.getElementById('listingStrip');
   if(!strip)return;
@@ -201,10 +250,10 @@ function renderListingStrip(list) {
   strip.innerHTML=visible.map((x,i)=>{ const photo=Array.isArray(x.photos)&&x.photos[0]?photoUrl(x.photos[0].path):''; return `<article class="listing-card" data-listing-index="${i}">
     ${photo?`<img class="listing-card-photo" src="${escapeHtml(photo)}" alt="" loading="lazy">`:''}
     <div class="listing-card-body">
-    <div class="listing-card-title">${escapeHtml(x.title)}</div>
+    <div class="listing-card-title">${escapeHtml(listingTitle(x))}</div>
     <div class="listing-card-price">${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</div>
     <div class="listing-card-meta">${escapeHtml(x.category_name||x.category||'')}</div>
-    <div class="listing-card-desc">${escapeHtml(x.description||'')}</div>
+    <div class="listing-card-desc">${escapeHtml(listingDescription(x))}</div>
     </div>
   </article>`}).join('');
   strip.querySelectorAll('.listing-card').forEach((card,i)=>card.onclick=()=>{showListing(visible[i]);if(markers[i]){map.setView(markers[i].getLatLng(),Math.max(map.getZoom(),15));markers[i].openPopup();}});
@@ -214,7 +263,7 @@ function render(list) {
   list.filter(x => currentCategory === 'all' || x.category === currentCategory).forEach(x => {
     const icon = L.divIcon({
       className:'map-pin-icon',
-      html:`<div class="map-pin"><div class="map-pin-content">${fmtMapPrice(x.price,x.currency)}<small>${escapeHtml(x.title)}</small></div></div>`,
+      html:`<div class="map-pin"><div class="map-pin-content">${fmtMapPrice(x.price,x.currency)}<small>${escapeHtml(listingTitle(x))}</small></div></div>`,
       iconSize:[54,54],
       iconAnchor:[10,54],
       popupAnchor:[0,-54]
@@ -232,11 +281,12 @@ async function toggleFavorite(id,button) {
   button.dataset.favorite=active?'0':'1'; button.textContent=active?t('addToFavorites'):t('inFavorites');
 }
 function showListing(x) {
+  activeListingOriginal = x;
   const period=x.price_period ?? x.period;
   const categoryName=x.category?.name ?? x.category ?? '—';
   const photos=Array.isArray(x.photos)?x.photos:[];
   const gallery=photos.length?`<div class="listing-gallery">${photos.map(p=>{const url=photoUrl(p.path);return url?`<img src="${url}" alt="" loading="lazy">`:''}).join('')}</div>`:'';
-  document.getElementById('sheetContent').innerHTML=`${gallery}<div class="listing-title">${escapeHtml(x.title)}</div><div class="listing-price">${fmtPrice(x.price,x.currency)} / ${periodLabel(period)}</div><div class="listing-meta">${t('categoryLabel')}: ${escapeHtml(categoryName)}</div>${x.description?`<div class="listing-meta listing-description">${escapeHtml(x.description)}</div>`:''}`;
+  document.getElementById('sheetContent').innerHTML=`${gallery}<div class="listing-title">${escapeHtml(listingTitle(x))}</div><div class="listing-price">${fmtPrice(x.price,x.currency)} / ${periodLabel(period)}</div><div class="listing-meta">${t('categoryLabel')}: ${escapeHtml(categoryName)}</div>${x.description?`<div class="listing-meta listing-description">${escapeHtml(listingDescription(x))}</div>`:''}`;
   document.getElementById('favoriteArea').innerHTML=`<button class="favorite-btn" data-favorite="0" onclick="toggleFavorite(${x.id},this)">${t('addToFavorites')}</button>`;
   const owner=x.user||x.owner;
   const ownerName=owner?[owner.first_name,owner.last_name].filter(Boolean).join(' ')||(owner.username?'@'+owner.username:t('owner')):'';
@@ -250,9 +300,9 @@ async function loadFavorites() {
   box.innerHTML=`<div class="listing-meta">${t('loading')}</div>`;
   const res=await fetch(API_BASE+'/favorites',{headers:{'X-Telegram-Init-Data':initData}});
   if(!res.ok){box.innerHTML=`<div class="listing-meta">${t('favoriteError')}</div>`;return;}
-  const data=await res.json();
+  const data=await translateListingTexts(await res.json());
   if(!data.length){box.innerHTML=`<div class="listing-meta">${t('favoritesEmpty')}</div>`;return;}
-  box.innerHTML=data.map(x=>'<button class="favorite-item" data-id="'+x.id+'"><b>'+escapeHtml(x.title)+'</b><span>'+fmtPrice(x.price,x.currency)+' / '+periodLabel(x.price_period)+'</span></button>').join('');
+  box.innerHTML=data.map(x=>'<button class="favorite-item" data-id="'+x.id+'"><b>'+escapeHtml(listingTitle(x))+'</b><span>'+fmtPrice(x.price,x.currency)+' / '+periodLabel(x.price_period)+'</span></button>').join('');
   box.querySelectorAll('.favorite-item').forEach(btn=>btn.onclick=()=>{const x=data.find(v=>Number(v.id)===Number(btn.dataset.id));if(x){document.getElementById('favoritesSheet').classList.add('hidden');showListing(normalizeListing(x));}});
 }
 async function loadMyListings() {
@@ -267,12 +317,12 @@ async function loadMyListings() {
     const response = await fetch(`${API_BASE}/my-listings`, {headers:{'X-Telegram-Init-Data':initData}});
     if (!response.ok) throw new Error('Could not load my listings');
     const payload = await response.json();
-    const items = (Array.isArray(payload) ? payload : (payload.data || [])).map(normalizeListing);
+    const items = await translateListingTexts((Array.isArray(payload) ? payload : (payload.data || [])).map(normalizeListing));
     if (!items.length) {
       box.innerHTML = `<div class="listing-meta">${t('myListingsEmpty')}</div>`;
       return;
     }
-    box.innerHTML = items.map(x => `<button class="favorite-item my-listing-item" data-id="${Number(x.id)}"><b>${escapeHtml(x.title)}</b><span>${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</span></button>`).join('');
+    box.innerHTML = items.map(x => `<button class="favorite-item my-listing-item" data-id="${Number(x.id)}"><b>${escapeHtml(listingTitle(x))}</b><span>${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</span></button>`).join('');
     box.querySelectorAll('.my-listing-item').forEach(btn => btn.onclick = () => {
       const item = items.find(x => Number(x.id) === Number(btn.dataset.id));
       if (item) {
@@ -290,14 +340,14 @@ async function loadListings() {
   if(currentCategory!=='all')params.set('category',currentCategory);
   const response=await fetch(`${API_BASE}/listings?${params.toString()}`);
   if(!response.ok)throw new Error('Не удалось загрузить объявления');
-  listings=(await response.json()).map(normalizeListing); render(listings);
+  listings=await translateListingTexts((await response.json()).map(normalizeListing)); render(listings);
 }
 async function loadNearby(lat,lng) {
   const params=new URLSearchParams({lat:String(lat),lng:String(lng),radius:'10',limit:'100'});
   if(currentCategory!=='all')params.set('category',currentCategory);
   const response=await fetch(`${API_BASE}/listings?${params.toString()}`);
   if(!response.ok)throw new Error('Не удалось загрузить объявления рядом');
-  listings=(await response.json()).map(normalizeListing); render(listings);
+  listings=await translateListingTexts((await response.json()).map(normalizeListing)); render(listings);
 }
 
 document.getElementById('closeSheet').onclick=()=>document.getElementById('sheet').classList.add('hidden');
@@ -320,13 +370,13 @@ document.getElementById('locateBtn').onclick=()=>{
 };
 
 document.getElementById('closeLanguage').onclick=()=>document.getElementById('languageSheet').classList.add('hidden');
-document.getElementById('languageOptions').onclick=event=>{
+document.getElementById('languageOptions').onclick=async event=>{
   const btn=event.target.closest('[data-language]');
   if(!btn)return;
   lang=btn.dataset.language;
   localStorage.setItem('rentmap_lang',lang);
   applyTranslations();
-  render(listings);
+  await refreshListingTranslations();
   document.getElementById('languageSheet').classList.add('hidden');
 };
 

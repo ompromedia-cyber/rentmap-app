@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Cache;
-use Illuminate\\Support\\Facades\\Http;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class TranslationController extends Controller
 {
@@ -46,7 +46,7 @@ class TranslationController extends Controller
 
             try {
                 $translated = $this->translateLongText($text, $source, $target);
-            } catch (\\Throwable $e) {
+            } catch (\Throwable $e) {
                 report($e);
                 // Preserve the original listing text if the translation provider is unavailable.
                 continue;
@@ -64,19 +64,19 @@ class TranslationController extends Controller
     private function detectSourceLanguage(string $text): string
     {
         // Detect scripts commonly used by listings in RentMap.
-        if (preg_match('/[\\x{0D80}-\\x{0DFF}]/u', $text)) {
+        if (preg_match('/[\x{0D80}-\x{0DFF}]/u', $text)) {
             return 'si';
         }
-        if (preg_match('/[\\x{0B80}-\\x{0BFF}]/u', $text)) {
+        if (preg_match('/[\x{0B80}-\x{0BFF}]/u', $text)) {
             return 'ta';
         }
-        if (preg_match('/[\\x{0900}-\\x{097F}]/u', $text)) {
+        if (preg_match('/[\x{0900}-\x{097F}]/u', $text)) {
             return 'hi';
         }
-        if (preg_match('/[\\x{0400}-\\x{04FF}]/u', $text)) {
+        if (preg_match('/[\x{0400}-\x{04FF}]/u', $text)) {
             return 'ru';
         }
-        if (preg_match('/[\\x{0102}\\x{0103}\\x{0110}\\x{0111}\\x{0128}\\x{0129}\\x{0168}\\x{0169}\\x{01A0}\\x{01A1}\\x{01AF}\\x{01B0}\\x{0300}-\\x{036F}]/u', $text)) {
+        if (preg_match('/[\x{0102}\x{0103}\x{0110}\x{0111}\x{0128}\x{0129}\x{0168}\x{0169}\x{01A0}\x{01A1}\x{01AF}\x{01B0}\x{0300}-\x{036F}]/u', $text)) {
             return 'vi';
         }
 
@@ -89,7 +89,7 @@ class TranslationController extends Controller
     {
         // MyMemory's q parameter is limited to about 500 bytes. Split on word
         // boundaries to stay safely below the limit for UTF-8 text.
-        $words = preg_split('/\\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $words = preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: [];
         $chunks = [];
         $chunk = '';
 
@@ -115,13 +115,13 @@ class TranslationController extends Controller
             ]);
 
             if (!$response->successful()) {
-                throw new \\RuntimeException('MyMemory translation request failed.');
+                throw new \RuntimeException('MyMemory translation request failed.');
             }
 
             $translated = $response->json('responseData.translatedText');
             $status = (int) $response->json('responseStatus', 0);
             if (!is_string($translated) || $translated === '' || $status !== 200) {
-                throw new \\RuntimeException('MyMemory returned no translation.');
+                throw new \RuntimeException('MyMemory returned no translation.');
             }
 
             $translatedChunks[] = html_entity_decode($translated, ENT_QUOTES | ENT_HTML5, 'UTF-8');

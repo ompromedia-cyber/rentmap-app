@@ -65,7 +65,7 @@ class ListingController extends Controller
             $query->latest('id');
         }
 
-        return response()->json($query->limit($limit)->get());
+        return response()->json($query->limit($limit)->get(), 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function mine(Request $request)
@@ -76,7 +76,7 @@ class ListingController extends Controller
             ->latest('id')
             ->get();
 
-        return response()->json($listings);
+        return response()->json($listings, 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function show(Listing $listing)
@@ -85,7 +85,7 @@ class ListingController extends Controller
             abort(404);
         }
 
-        return $listing->load(['category:id,slug,name,icon', 'photos:id,listing_id,path', 'user:id,telegram_id,username,first_name,last_name,photo_url']);
+        return response()->json($listing->load(['category:id,slug,name,icon', 'photos:id,listing_id,path', 'user:id,telegram_id,username,first_name,last_name,photo_url']), 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function store(Request $request)
@@ -110,7 +110,9 @@ class ListingController extends Controller
 
         return response()->json(
             $listing->load('category:id,slug,name,icon'),
-            201
+            201,
+            [],
+            JSON_INVALID_UTF8_SUBSTITUTE
         );
     }
 }

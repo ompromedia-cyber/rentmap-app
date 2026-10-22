@@ -7,9 +7,9 @@ const inTelegram = Boolean(tg?.initData);
 document.documentElement.classList.toggle('outside-telegram', !inTelegram);
 
 const REGIONS = {
+  goa: { center: [15.4, 73.95], zoom: 11 },
   nha_trang: { center: [12.245, 109.194], zoom: 13 },
   da_nang: { center: [16.0544, 108.2022], zoom: 13 },
-  goa: { center: [15.4, 73.95], zoom: 11 },
   sri_lanka: { center: [7.8731, 80.7718], zoom: 8 }
 };
 
@@ -127,7 +127,30 @@ const regionNames = {
   sri_lanka:{ru:'Шри-Ланка',en:'Sri Lanka',vi:'Sri Lanka',hi:'श्रीलंका',si:'ශ්‍රී ලංකාව',ta:'இலங்கை',kok:'Sri Lanka',mr:'श्रीलंका'}
 };
 let lang = localStorage.getItem('rentmap_lang') || 'ru';
-let currentRegion = localStorage.getItem('rentmap_region') || 'nha_trang';
+// Goa is the fallback region; when location access is available, startup selects the nearest supported region.
+let currentRegion = 'goa';
+
+function detectRegionFromCoordinates(lat, lng) {
+  const candidates = [
+    { code: 'goa', latMin: 14.5, latMax: 16.5, lngMin: 73.0, lngMax: 75.0 },
+    { code: 'nha_trang', latMin: 11.0, latMax: 13.7, lngMin: 108.0, lngMax: 110.2 },
+    { code: 'da_nang', latMin: 15.0, latMax: 17.8, lngMin: 106.8, lngMax: 109.8 },
+    { code: 'sri_lanka', latMin: 5.0, latMax: 10.2, lngMin: 79.0, lngMax: 82.5 }
+  ];
+  const match = candidates.find(area => lat >= area.latMin && lat <= area.latMax && lng >= area.lngMin && lng <= area.lngMax);
+  return match?.code || 'goa';
+}
+
+function getStartupRegion() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) { resolve('goa'); return; }
+    navigator.geolocation.getCurrentPosition(
+      position => resolve(detectRegionFromCoordinates(position.coords.latitude, position.coords.longitude)),
+      () => resolve('goa'),
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 15 * 60 * 1000 }
+    );
+  });
+}
 
 function t(key) {
   return translations[lang]?.[key] ?? EXTRA_TRANSLATIONS[key]?.[lang] ?? translations.en[key] ?? EXTRA_TRANSLATIONS[key]?.en ?? key;
@@ -385,6 +408,9 @@ function renderLanguageOptions(){
   if(box)box.innerHTML=LANGUAGES.map(code=>`<button class="filter ${code===lang?'active':''}" data-language="${code}">${languageNames[code]}</button>`).join('');
 }
 async function init() {
+  // Choose the map/listing region from the user's location before loading listings.
+  currentRegion = await getStartupRegion();
+  map.setView(REGIONS[currentRegion].center, REGIONS[currentRegion].zoom);
   setupSelectors();
   applyTranslations();
   renderLanguageOptions();

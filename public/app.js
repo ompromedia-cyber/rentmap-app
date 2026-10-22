@@ -325,7 +325,7 @@ function showListing(x) {
   const categoryName=x.category?.name ?? x.category ?? '—';
   const photos=Array.isArray(x.photos)?x.photos:[];
   const gallery=photos.length?`<div class="listing-gallery">${photos.map(p=>{const url=photoUrl(p.path);return url?`<img src="${url}" alt="" loading="lazy">`:''}).join('')}</div>`:'';
-  document.getElementById('sheetContent').innerHTML=`${gallery}<div class="listing-title">${escapeHtml(listingTitle(x))}</div><div class="listing-price">${fmtPrice(x.price,x.currency)} / ${periodLabel(period)}</div><div class="listing-meta">${t('categoryLabel')}: ${escapeHtml(categoryName)}</div>${x.description?`<div class="listing-meta listing-description">${escapeHtml(listingDescription(x))}</div>`:''}`;
+  document.getElementById('sheetContent').innerHTML=`${gallery}<div class="listing-title">${escapeHtml(listingTitle(x))}</div><div class="listing-price">${fmtPrice(x.price,listingCurrency(x),x.lat,x.lon)} / ${periodLabel(period)}</div><div class="listing-meta">${t('categoryLabel')}: ${escapeHtml(categoryName)}</div>${x.description?`<div class="listing-meta listing-description">${escapeHtml(listingDescription(x))}</div>`:''}`;
   document.getElementById('favoriteArea').innerHTML=`<button class="favorite-btn" data-favorite="0" onclick="toggleFavorite(${x.id},this)">${t('addToFavorites')}</button>`;
   const owner=x.user||x.owner;
   const ownerName=owner?[owner.first_name,owner.last_name].filter(Boolean).join(' ')||(owner.username?'@'+owner.username:t('owner')):'';
@@ -341,7 +341,7 @@ async function loadFavorites() {
   if(!res.ok){box.innerHTML=`<div class="listing-meta">${t('favoriteError')}</div>`;return;}
   const data=await translateListingTexts(await res.json());
   if(!data.length){box.innerHTML=`<div class="listing-meta">${t('favoritesEmpty')}</div>`;return;}
-  box.innerHTML=data.map(x=>'<button class="favorite-item" data-id="'+x.id+'"><b>'+escapeHtml(listingTitle(x))+'</b><span>'+fmtPrice(x.price,x.currency)+' / '+periodLabel(x.price_period)+'</span></button>').join('');
+  box.innerHTML=data.map(x=>'<button class="favorite-item" data-id="'+x.id+'"><b>'+escapeHtml(listingTitle(x))+'</b><span>'+fmtPrice(x.price,listingCurrency(x),x.lat,x.lon)+' / '+periodLabel(x.price_period)+'</span></button>').join('');
   box.querySelectorAll('.favorite-item').forEach(btn=>btn.onclick=()=>{const x=data.find(v=>Number(v.id)===Number(btn.dataset.id));if(x){document.getElementById('favoritesSheet').classList.add('hidden');showListing(normalizeListing(x));}});
 }
 async function loadMyListings() {
@@ -361,7 +361,7 @@ async function loadMyListings() {
       box.innerHTML = `<div class="listing-meta">${t('myListingsEmpty')}</div>`;
       return;
     }
-    box.innerHTML = items.map(x => `<button class="favorite-item my-listing-item" data-id="${Number(x.id)}"><b>${escapeHtml(listingTitle(x))}</b><span>${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</span></button>`).join('');
+    box.innerHTML = items.map(x => `<button class="favorite-item my-listing-item" data-id="${Number(x.id)}"><b>${escapeHtml(listingTitle(x))}</b><span>${fmtPrice(x.price,listingCurrency(x),x.lat,x.lon)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</span></button>`).join('');
     box.querySelectorAll('.my-listing-item').forEach(btn => btn.onclick = () => {
       const item = items.find(x => Number(x.id) === Number(btn.dataset.id));
       if (item) {

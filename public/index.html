@@ -15,114 +15,27 @@
       <select id="regionSelect" class="compact-select" aria-label="Region"></select>
     </div>
   </header>
-
-  <section id="filterSheet" class="filter-sheet hidden">
-    <div class="filter-sheet-head"><b data-i18n="filters">Фильтры</b><button id="closeFilterSheet" class="close">×</button></div>
-    <div class="filter-options">
-      <button class="filter active" data-category="all" data-i18n="all">Все</button>
-      <button class="filter" data-category="housing" data-i18n="housing">🏠 Жильё</button>
-      <button class="filter" data-category="scooter" data-i18n="scooters">🛵 Скутеры</button>
-      <button class="filter" data-category="motorcycle" data-i18n="motorcycles">🏍️ Мото</button>
-      <button class="filter" data-category="car" data-i18n="cars">🚗 Авто</button>
-    </div>
-  </section>
-
+  <section id="filterSheet" class="filter-sheet hidden"><div class="filter-sheet-head"><b data-i18n="filters">Фильтры</b><button id="closeFilterSheet" class="close">×</button></div><div class="filter-options"><button class="filter active" data-category="all" data-i18n="all">Все</button><button class="filter" data-category="housing" data-i18n="housing">🏠 Жильё</button><button class="filter" data-category="scooter" data-i18n="scooters">🛵 Скутеры</button><button class="filter" data-category="motorcycle" data-i18n="motorcycles">🏍️ Мото</button><button class="filter" data-category="car" data-i18n="cars">🚗 Авто</button></div></section>
   <section id="listingStrip" class="listing-strip"></section>
-
-  <aside id="languageSheet" class="sheet hidden">
-    <button id="closeLanguage" class="close">×</button>
-    <h2 data-i18n="language">Язык</h2>
-    <div id="languageOptions" class="filter-options"></div>
-  </aside>
-
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <button id="filtersBtn">☰<span data-i18n="filters">Фильтры</span></button>
-    <button id="locateBtn">⌖<span data-i18n="nearby">Рядом</span></button>
-    <button id="addListingBtn" class="bottom-add">＋<span data-i18n="addListing">Объявление</span></button>
-    <button id="favoritesBtn">♡<span data-i18n="favorites">Избранное</span></button>
-    <button id="myListingsBtn">▤<span data-i18n="myListings">Мои объявления</span></button>
-    <button id="languageBtn">文<span data-i18n="language">Язык</span></button>
-  </nav>
-
+  <aside id="languageSheet" class="sheet hidden"><button id="closeLanguage" class="close">×</button><h2 data-i18n="language">Язык</h2><div id="languageOptions" class="filter-options"></div></aside>
+  <nav class="bottom-nav" aria-label="Main navigation"><button id="filtersBtn">☰<span data-i18n="filters">Фильтры</span></button><button id="locateBtn">⌖<span data-i18n="nearby">Рядом</span></button><button id="addListingBtn" class="bottom-add">＋<span data-i18n="addListing">Объявление</span></button><button id="favoritesBtn">♡<span data-i18n="favorites">Избранное</span></button><button id="myListingsBtn">▤<span data-i18n="myListings">Мои объявления</span></button><button id="languageBtn">文<span data-i18n="language">Язык</span></button></nav>
   <main id="map"></main>
-
-  <aside id="sheet" class="sheet hidden">
-    <button id="closeSheet" class="close">×</button>
-    <div id="sheetContent"></div>
-    <div id="favoriteArea"></div><div id="ownerArea"></div>
-  </aside>
-
-  <aside id="favoritesSheet" class="sheet hidden">
-    <button id="closeFavorites" class="close">×</button>
-    <h2 data-i18n="favorites">Избранное</h2>
-    <div id="favoritesContent"></div>
-  </aside>
-
-  <aside id="myListingsSheet" class="sheet hidden">
-    <button id="closeMyListings" class="close">×</button>
-    <h2 data-i18n="myListings">Мои объявления</h2>
-    <div id="myListingsContent"></div>
-  </aside>
-
-  <aside id="createSheet" class="sheet form-sheet hidden">
-    <button id="closeCreate" class="close">×</button>
-    <h2 data-i18n="newListing">Новое объявление</h2>
-    <form id="listingForm">
-      <label><span data-i18n="category">Категория</span>
-        <select id="listingCategory" required>
-          <option value="1">🏠 <span>Жильё</span></option>
-          <option value="2">🛵 <span>Скутеры</span></option>
-          <option value="3">🏍️ <span>Мотоциклы</span></option>
-          <option value="4">🚗 <span>Авто</span></option>
-        </select>
-      </label>
-      <label><span data-i18n="title">Название</span>
-        <input id="listingTitle" required maxlength="255" data-i18n-placeholder="titlePlaceholder" placeholder="Например, квартира у моря">
-      </label>
-      <label><span data-i18n="price">Цена</span>
-        <input id="listingPrice" required type="number" min="0" step="0.01" data-i18n-placeholder="pricePlaceholder" placeholder="8000000">
-      </label>
-      <label><span data-i18n="period">Период</span>
-        <select id="listingPeriod" required>
-          <option value="hour" data-i18n="hour">Час</option>
-          <option value="day" selected data-i18n="day">День</option>
-          <option value="week" data-i18n="week">Неделя</option>
-          <option value="month" data-i18n="month">Месяц</option>
-        </select>
-      </label>
-      <label><span data-i18n="description">Описание</span>
-        <textarea id="listingDescription" rows="3" data-i18n-placeholder="descriptionPlaceholder" placeholder="Описание, условия аренды..."></textarea>
-      </label>
-      <label><span data-i18n="photos">Фотографии — максимум 5 (1 основная + 4 дополнительные)</span>
-        <input id="listingPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-      </label>
-      <div id="photoPreview" class="photo-preview"></div>
-      <div class="location-help" data-i18n="locationHelp">Нажмите на карте, чтобы выбрать место объявления.</div>
-      <div id="selectedLocation" data-i18n="locationNotSelected">Точка не выбрана</div>
-      <button class="primary" type="submit" data-i18n="publish">Опубликовать</button>
-      <div id="formMessage" class="form-message"></div>
-    </form>
-  </aside>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    window.previewListingPhotos = function(input) {
-      const preview = document.getElementById('photoPreview');
-      if (!preview) return;
-      const files = Array.from(input.files || []);
-      if (files.length > 5) {
-        input.value = '';
-        preview.innerHTML = '';
-        alert('Можно выбрать максимум 5 фотографий: 1 основную и 4 дополнительные.');
-        return;
-      }
-      preview.innerHTML = files.map((file, index) => {
-        const url = URL.createObjectURL(file);
-        return `<div class="photo-preview-item${index === 0 ? ' primary-photo' : ''}"><img src="${url}" alt=""><span>${index === 0 ? 'Основная' : 'Доп. ' + index}</span></div>`;
-      }).join('');
-    };
-  </script>
+  <aside id="sheet" class="sheet hidden"><button id="closeSheet" class="close">×</button><div id="sheetContent"></div><div id="favoriteArea"></div><div id="ownerArea"></div></aside>
+  <aside id="favoritesSheet" class="sheet hidden"><button id="closeFavorites" class="close">×</button><h2 data-i18n="favorites">Избранное</h2><div id="favoritesContent"></div></aside>
+  <aside id="myListingsSheet" class="sheet hidden"><button id="closeMyListings" class="close">×</button><h2 data-i18n="myListings">Мои объявления</h2><div id="myListingsContent"></div></aside>
+  <aside id="createSheet" class="sheet form-sheet hidden"><button id="closeCreate" class="close">×</button><h2 data-i18n="newListing">Новое объявление</h2><form id="listingForm">
+    <label><span data-i18n="category">Категория</span><select id="listingCategory" required><option value="1">🏠 Жильё</option><option value="2">🛵 Скутеры</option><option value="3">🏍️ Мотоциклы</option><option value="4">🚗 Авто</option></select></label>
+    <label><span data-i18n="title">Название</span><input id="listingTitle" required maxlength="255" data-i18n-placeholder="titlePlaceholder" placeholder="Например, квартира у моря"></label>
+    <label><span data-i18n="price">Цена</span><input id="listingPrice" required type="number" min="0" step="0.01" data-i18n-placeholder="pricePlaceholder" placeholder="8000000"></label>
+    <label><span data-i18n="period">Период</span><select id="listingPeriod" required><option value="hour" data-i18n="hour">Час</option><option value="day" selected data-i18n="day">День</option><option value="week" data-i18n="week">Неделя</option><option value="month" data-i18n="month">Месяц</option></select></label>
+    <label><span data-i18n="description">Описание</span><textarea id="listingDescription" rows="3" data-i18n-placeholder="descriptionPlaceholder" placeholder="Описание, условия аренды..."></textarea></label>
+    <label><span data-i18n="photos">Фотографии — максимум 5 (1 основная + 4 дополнительные)</span><input id="listingPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="previewListingPhotos(this)"></label>
+    <div id="photoPreview" class="photo-preview"></div>
+    <div class="location-help" data-i18n="locationHelp">Нажмите на карте, чтобы выбрать место объявления.</div><div id="selectedLocation" data-i18n="locationNotSelected">Точка не выбрана</div>
+    <button class="primary" type="submit" data-i18n="publish">Опубликовать</button><div id="formMessage" class="form-message"></div>
+  </form></aside>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>window.previewListingPhotos=function(input){const preview=document.getElementById('photoPreview');if(!preview)return;const files=Array.from(input.files||[]);if(files.length>5){input.value='';preview.innerHTML='';alert('Можно выбрать максимум 5 фотографий: 1 основную и 4 дополнительные.');return;}preview.innerHTML=files.map((file,index)=>{const url=URL.createObjectURL(file);return '<div class="photo-preview-item'+(index===0?' primary-photo':'')+'"><img src="'+url+'" alt=""><span>'+(index===0?'Основная':'Доп. '+index)+'</span></div>';}).join('');};</script>
   <script src="app.js"></script>
 </body>
 </html>

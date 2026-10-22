@@ -93,7 +93,7 @@
       <label><span data-i18n="description">Описание</span>
         <textarea id="listingDescription" rows="3" data-i18n-placeholder="descriptionPlaceholder" placeholder="Описание, условия аренды..."></textarea>
       </label>
-      <label><span data-i18n="photos">Фотографии</span>
+      <label><span data-i18n="photos">Фотографии — максимум 5 (1 основная + 4 дополнительные)</span>
         <input id="listingPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
       </label>
       <div id="photoPreview" class="photo-preview"></div>
@@ -106,6 +106,23 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    window.previewListingPhotos = function(input) {
+      const preview = document.getElementById('photoPreview');
+      if (!preview) return;
+      const files = Array.from(input.files || []);
+      if (files.length > 5) {
+        input.value = '';
+        preview.innerHTML = '';
+        alert('Можно выбрать максимум 5 фотографий: 1 основную и 4 дополнительные.');
+        return;
+      }
+      preview.innerHTML = files.map((file, index) => {
+        const url = URL.createObjectURL(file);
+        return `<div class="photo-preview-item${index === 0 ? ' primary-photo' : ''}"><img src="${url}" alt=""><span>${index === 0 ? 'Основная' : 'Доп. ' + index}</span></div>`;
+      }).join('');
+    };
+  </script>
   <script src="app.js"></script>
 </body>
 </html>

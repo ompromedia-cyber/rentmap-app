@@ -199,16 +199,32 @@ let markers = [];
 let currentCategory = 'all';
 let listings = [];
 
-const fmtPrice = (n, c) => new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : lang === 'vi' ? 'vi-VN' : 'en-US').format(Number(n)) + ' ' + c;
-const fmtMapPrice = (n, c) => {
+function currencyForCoordinates(lat, lng) {
+  const latitude = Number(lat), longitude = Number(lng);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (latitude >= 14.8 && latitude <= 15.8 && longitude >= 73.6 && longitude <= 74.5) return 'INR';
+  if (latitude >= 11.9 && latitude <= 12.5 && longitude >= 108.8 && longitude <= 109.45) return 'VND';
+  if (latitude >= 5.8 && latitude <= 9.95 && longitude >= 79.5 && longitude <= 81.95) return 'LKR';
+  return null;
+}
+const listingCurrency = x => currencyForCoordinates(x.lat ?? x.latitude, x.lon ?? x.longitude) || x.currency || 'VND';
+const currencyLocale = currency => currency === 'INR' ? 'en-IN' : currency === 'VND' ? 'vi-VN' : currency === 'LKR' ? 'en-LK' : (lang === 'ru' ? 'ru-RU' : lang === 'vi' ? 'vi-VN' : 'en-US');
+const fmtPrice = (n, c, lat, lng) => {
+  const currency = currencyForCoordinates(lat, lng) || c || 'VND';
   const value = Number(n);
   if (!Number.isFinite(value)) return '';
-  const units = c === 'VND' ? [[1e9,'B'],[1e6,'M'],[1e3,'K']] : [[1e9,'B'],[1e6,'M'],[1e3,'K']];
+  return new Intl.NumberFormat(currencyLocale(currency), {style:'currency', currency, currencyDisplay:'narrowSymbol', maximumFractionDigits:0}).format(value);
+};
+const fmtMapPrice = (n, c, lat, lng) => {
+  const value = Number(n), currency = currencyForCoordinates(lat, lng) || c || 'VND';
+  if (!Number.isFinite(value)) return '';
+  const symbol = currency === 'INR' ? '₹' : currency === 'VND' ? '₫' : currency === 'LKR' ? 'Rs ' : '';
+  const units = [[1e9,'B'],[1e6,'M'],[1e3,'K']];
   for (const [unit, suffix] of units) if (value >= unit) {
     const v = value / unit;
-    return (v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(1).replace(/\.0$/,'') : v.toFixed(1).replace(/\.0$/,'')) + suffix;
+    return symbol + (v >= 100 ? Math.round(v) : Number(v.toFixed(1))) + suffix;
   }
-  return String(Math.round(value));
+  return symbol + new Intl.NumberFormat(currencyLocale(currency), {maximumFractionDigits:0}).format(value);
 };
 const periodLabel = p => ({hour:t('periodHour'),day:t('periodDay'),week:t('periodWeek'),month:t('periodMonth')}[p] || p);
 const escapeHtml = value => String(value ?? '').replace(/[&<>\\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\\\"':'&quot;',"'":'&#039;'}[ch]));
@@ -274,7 +290,7 @@ function renderListingStrip(list) {
     ${photo?`<img class="listing-card-photo" src="${escapeHtml(photo)}" alt="" loading="lazy">`:''}
     <div class="listing-card-body">
     <div class="listing-card-title">${escapeHtml(listingTitle(x))}</div>
-    <div class="listing-card-price">${fmtPrice(x.price,x.currency)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</div>
+    <div class="listing-card-price">${fmtPrice(x.price,listingCurrency(x),x.lat,x.lon)} / ${escapeHtml(periodLabel(x.price_period ?? x.period))}</div>
     <div class="listing-card-meta">${escapeHtml(x.category_name||x.category||'')}</div>
     <div class="listing-card-desc">${escapeHtml(listingDescription(x))}</div>
     </div>
@@ -286,7 +302,7 @@ function render(list) {
   list.filter(x => currentCategory === 'all' || x.category === currentCategory).forEach(x => {
     const icon = L.divIcon({
       className:'map-pin-icon',
-      html:`<div class="map-pin"><div class="map-pin-content">${fmtMapPrice(x.price,x.currency)}<small>${escapeHtml(listingTitle(x))}</small></div></div>`,
+      html:`<div class="map-pin"><div class="map-pin-content">${fmtMapPrice(x.price,listingCurrency(x),x.lat,x.lon)}<small>${escapeHtml(listingTitle(x))}</small></div></div>`,
       iconSize:[54,54],
       iconAnchor:[10,54],
       popupAnchor:[0,-54]
@@ -432,7 +448,7 @@ document.getElementById('listingForm').addEventListener('submit',async event=>{
   event.preventDefault();
   if(selectedLat===null||selectedLng===null){document.getElementById('formMessage').textContent=t('chooseLocation');return;}
   const initData=tg?.initData;if(!initData)return;
-  const payload={category_id:Number(document.getElementById('listingCategory').value),title:document.getElementById('listingTitle').value.trim(),description:document.getElementById('listingDescription').value.trim()||null,price:Number(document.getElementById('listingPrice').value),currency:'VND',price_period:document.getElementById('listingPeriod').value,latitude:selectedLat,longitude:selectedLng,status:'active'};
+  const payload={category_id:Number(document.getElementById('listingCategory').value),title:document.getElementById('listingTitle').value.trim(),description:document.getElementById('listingDescription').value.trim()||null,price:Number(document.getElementById('listingPrice').value),currency:currencyForCoordinates(selectedLat,selectedLng)||'VND',price_period:document.getElementById('listingPeriod').value,latitude:selectedLat,longitude:selectedLng,status:'active'};
   const message=document.getElementById('formMessage'),photoInput=document.getElementById('listingPhotos'),selectedPhotos=Array.from(photoInput.files||[]);
   if(selectedPhotos.length>10){message.textContent=t('maxPhotos');return;}
   message.textContent=t('publishing');

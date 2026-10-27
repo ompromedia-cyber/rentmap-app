@@ -21,6 +21,9 @@ Route::middleware('telegram.auth')->group(function () {
     Route::post('/listings', [ListingController::class, 'store']);
     Route::post('/listings/{listing}/photos', [ListingPhotoController::class, 'store'])->whereNumber('listing');
     Route::delete('/listing-photos/{photo}', [ListingPhotoController::class, 'destroy'])->whereNumber('photo');
+    Route::post('/listings/{listing}/archive', [ListingController::class, 'archive'])->whereNumber('listing');
+    Route::post('/listings/{listing}/restore', [ListingController::class, 'restore'])->whereNumber('listing');
+    Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->whereNumber('listing');
     Route::post('/favorites/{listing}', [FavoriteController::class, 'store'])->whereNumber('listing');
     Route::delete('/favorites/{listing}', [FavoriteController::class, 'destroy'])->whereNumber('listing');
 });

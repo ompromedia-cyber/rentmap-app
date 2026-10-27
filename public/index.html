@@ -53,5 +53,6 @@
   <script>window.previewListingPhotos=function(input){const preview=document.getElementById('photoPreview');if(!preview)return;const files=Array.from(input.files||[]);if(files.length>5){input.value='';preview.innerHTML='';alert('Можно выбрать максимум 5 фотографий: 1 основную и 4 дополнительные.');return;}preview.innerHTML=files.map((file,index)=>{const url=URL.createObjectURL(file);return '<div class="photo-preview-item'+(index===0?' primary-photo':'')+'"><img src="'+url+'" alt=""><span>'+(index===0?'Основная':'Доп. '+index)+'</span></div>';}).join('');};</script>
   <script src="app.js"></script>
   <script src="location-picker.js"></script>
+  <script src="listing-actions.js"></script>
 </body>
 </html>

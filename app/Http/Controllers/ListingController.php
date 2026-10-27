@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class ListingController extends Controller
 {
@@ -24,13 +25,8 @@ class ListingController extends Controller
             ->with(['category:id,slug,name,icon', 'photos:id,listing_id,path'])
             ->where('status', 'active');
 
-        if (!empty($validated['category_id'])) {
-            $query->where('category_id', $validated['category_id']);
-        }
-
-        if (!empty($validated['category'])) {
-            $query->whereHas('category', fn ($q) => $q->where('slug', $validated['category']));
-        }
+        if (!empty($validated['category_id'])) $query->where('category_id', $validated['category_id']);
+        if (!empty($validated['category'])) $query->whereHas('category', fn ($q) => $q->where('slug', $validated['category']));
 
         $regionBounds = [
             'nha_trang' => [11.90, 12.50, 108.80, 109.45],
@@ -40,79 +36,72 @@ class ListingController extends Controller
         ];
         if (!empty($validated['region'])) {
             [$minLat, $maxLat, $minLng, $maxLng] = $regionBounds[$validated['region']];
-            $query->whereBetween('latitude', [$minLat, $maxLat])
-                ->whereBetween('longitude', [$minLng, $maxLng]);
+            $query->whereBetween('latitude', [$minLat, $maxLat])->whereBetween('longitude', [$minLng, $maxLng]);
         }
 
         $limit = (int) ($validated['limit'] ?? 100);
-
         if (isset($validated['lat'], $validated['lng'])) {
             $radiusKm = (float) ($validated['radius'] ?? 5);
-            $lat = (float) $validated['lat'];
-            $lng = (float) $validated['lng'];
-
+            $lat = (float) $validated['lat']; $lng = (float) $validated['lng'];
             $query->select('listings.*')
-                ->selectRaw(
-                    'ST_Distance_Sphere(location, ST_SRID(POINT(?, ?), 4326)) / 1000 AS distance_km',
-                    [$lng, $lat]
-                )
-                ->whereRaw(
-                    'ST_Distance_Sphere(location, ST_SRID(POINT(?, ?), 4326)) <= ?',
-                    [$lng, $lat, $radiusKm * 1000]
-                )
+                ->selectRaw('ST_Distance_Sphere(location, ST_SRID(POINT(?, ?), 4326)) / 1000 AS distance_km', [$lng, $lat])
+                ->whereRaw('ST_Distance_Sphere(location, ST_SRID(POINT(?, ?), 4326)) <= ?', [$lng, $lat, $radiusKm * 1000])
                 ->orderBy('distance_km');
-        } else {
-            $query->latest('id');
-        }
+        } else $query->latest('id');
 
         return response()->json($query->limit($limit)->get(), 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function mine(Request $request)
     {
-        $listings = Listing::query()
-            ->where('user_id', $request->user()->id)
+        $listings = Listing::query()->where('user_id', $request->user()->id)
             ->with(['category:id,slug,name,icon', 'photos:id,listing_id,path'])
-            ->latest('id')
-            ->get();
-
+            ->latest('id')->get();
         return response()->json($listings, 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function show(Listing $listing)
     {
-        if ($listing->status !== 'active') {
-            abort(404);
-        }
-
+        if ($listing->status !== 'active') abort(404);
         return response()->json($listing->load(['category:id,slug,name,icon', 'photos:id,listing_id,path', 'user:id,telegram_id,username,first_name,last_name,photo_url']), 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', 'string', 'size:3'],
-            'price_period' => ['required', Rule::in(['hour', 'day', 'week', 'month'])],
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'status' => ['nullable', Rule::in(['draft', 'active'])],
+            'category_id' => ['required', 'integer', 'exists:categories,id'], 'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'], 'price' => ['required', 'numeric', 'min:0'], 'currency' => ['required', 'string', 'size:3'],
+            'price_period' => ['required', Rule::in(['hour', 'day', 'week', 'month'])], 'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'], 'status' => ['nullable', Rule::in(['draft', 'active'])],
         ]);
+        $listing = Listing::create([...$validated, 'user_id' => $request->user()->id, 'status' => $validated['status'] ?? 'active']);
+        return response()->json($listing->load('category:id,slug,name,icon'), 201, [], JSON_INVALID_UTF8_SUBSTITUTE);
+    }
 
-        $listing = Listing::create([
-            ...$validated,
-            'user_id' => $request->user()->id,
-            'status' => $validated['status'] ?? 'active',
-        ]);
+    public function archive(Request $request, Listing $listing)
+    {
+        $this->ensureOwner($request, $listing);
+        $listing->update(['status' => 'archived']);
+        return response()->json(['message' => 'Объявление добавлено в архив.', 'status' => 'archived']);
+    }
 
-        return response()->json(
-            $listing->load('category:id,slug,name,icon'),
-            201,
-            [],
-            JSON_INVALID_UTF8_SUBSTITUTE
-        );
+    public function restore(Request $request, Listing $listing)
+    {
+        $this->ensureOwner($request, $listing);
+        $listing->update(['status' => 'active']);
+        return response()->json(['message' => 'Объявление снова опубликовано.', 'status' => 'active']);
+    }
+
+    public function destroy(Request $request, Listing $listing)
+    {
+        $this->ensureOwner($request, $listing);
+        foreach ($listing->photos as $photo) Storage::disk('public')->delete($photo->path);
+        $listing->delete();
+        return response()->json(['message' => 'Объявление удалено.']);
+    }
+
+    private function ensureOwner(Request $request, Listing $listing): void
+    {
+        if ((int) $listing->user_id !== (int) $request->user()->id) abort(403);
     }
 }

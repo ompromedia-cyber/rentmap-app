@@ -6,6 +6,7 @@
   <title>RentMap</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="listing-actions.css">
 </head>
 <body>
   <header class="topbar">
@@ -23,21 +24,15 @@
   <aside id="sheet" class="sheet hidden"><button id="closeSheet" class="close">×</button><div id="sheetContent"></div><div id="favoriteArea"></div><div id="ownerArea"></div></aside>
   <aside id="favoritesSheet" class="sheet hidden"><button id="closeFavorites" class="close">×</button><h2 data-i18n="favorites">Избранное</h2><div id="favoritesContent"></div></aside>
   <aside id="myListingsSheet" class="sheet hidden"><button id="closeMyListings" class="close">×</button><h2 data-i18n="myListings">Мои объявления</h2><div id="myListingsContent"></div></aside>
-
   <aside id="locationPicker" class="location-picker hidden">
     <div class="location-picker-card">
       <button id="cancelLocation" class="close">×</button>
       <h2 data-i18n="locationPickerTitle">Отметьте вашу точку на карте</h2>
       <p class="location-picker-help" data-i18n="locationPickerText">Нажмите на карте в нужном месте или найдите адрес ниже.</p>
-      <div class="location-search">
-        <input id="locationAddress" type="text" data-i18n-placeholder="addressPlaceholder" placeholder="Введите адрес">
-        <button id="locationAddressSearch" class="secondary" type="button" data-i18n="findAddress">Найти</button>
-      </div>
-      <div id="locationPickerMessage" class="form-message"></div>
-      <button id="confirmLocation" class="primary" type="button" data-i18n="continueToListing">Продолжить</button>
+      <div class="location-search"><input id="locationAddress" type="text" data-i18n-placeholder="addressPlaceholder" placeholder="Введите адрес"><button id="locationAddressSearch" class="secondary" type="button" data-i18n="findAddress">Найти</button></div>
+      <div id="locationPickerMessage" class="form-message"></div><button id="confirmLocation" class="primary" type="button" data-i18n="continueToListing">Продолжить</button>
     </div>
   </aside>
-
   <aside id="createSheet" class="sheet form-sheet hidden"><button id="closeCreate" class="close">×</button><h2 data-i18n="newListing">Новое объявление</h2><form id="listingForm">
     <label><span data-i18n="category">Категория</span><select id="listingCategory" required><option value="1">🏠 Жильё</option><option value="2">🛵 Скутеры</option><option value="3">🏍️ Мотоциклы</option><option value="4">🚗 Авто</option></select></label>
     <label><span data-i18n="title">Название</span><input id="listingTitle" required maxlength="255" data-i18n-placeholder="titlePlaceholder" placeholder="Например, квартира у моря"></label>
@@ -45,14 +40,11 @@
     <label><span data-i18n="period">Период</span><select id="listingPeriod" required><option value="hour" data-i18n="hour">Час</option><option value="day" selected data-i18n="day">День</option><option value="week" data-i18n="week">Неделя</option><option value="month" data-i18n="month">Месяц</option></select></label>
     <label><span data-i18n="description">Описание</span><textarea id="listingDescription" rows="3" data-i18n-placeholder="descriptionPlaceholder" placeholder="Описание, условия аренды..."></textarea></label>
     <label><span data-i18n="photos">Фотографии — максимум 5 (1 основная + 4 дополнительные)</span><input id="listingPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="previewListingPhotos(this)"></label>
-    <div id="photoPreview" class="photo-preview"></div>
-    <div class="location-help" data-i18n="locationHelp">Место уже выбрано на карте.</div><div id="selectedLocation" data-i18n="locationNotSelected">Точка не выбрана</div>
+    <div id="photoPreview" class="photo-preview"></div><div class="location-help" data-i18n="locationHelp">Место уже выбрано на карте.</div><div id="selectedLocation" data-i18n="locationNotSelected">Точка не выбрана</div>
     <button class="primary" type="submit" data-i18n="publish">Опубликовать</button><div id="formMessage" class="form-message"></div>
   </form></aside>
   <script src="https://telegram.org/js/telegram-web-app.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>window.previewListingPhotos=function(input){const preview=document.getElementById('photoPreview');if(!preview)return;const files=Array.from(input.files||[]);if(files.length>5){input.value='';preview.innerHTML='';alert('Можно выбрать максимум 5 фотографий: 1 основную и 4 дополнительные.');return;}preview.innerHTML=files.map((file,index)=>{const url=URL.createObjectURL(file);return '<div class="photo-preview-item'+(index===0?' primary-photo':'')+'"><img src="'+url+'" alt=""><span>'+(index===0?'Основная':'Доп. '+index)+'</span></div>';}).join('');};</script>
-  <script src="app.js"></script>
-  <script src="location-picker.js"></script>
-  <script src="listing-actions.js"></script>
+  <script src="app.js"></script><script src="location-picker.js"></script><script src="listing-actions.js"></script>
 </body>
 </html>
